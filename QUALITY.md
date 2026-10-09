@@ -96,6 +96,11 @@ mechanically verified*. Code implements; tests enforce.
   `X` toggles translation (alias for `T`), `C` toggles expanded-info;
   shortcuts never fire in inputs/contentEditable. **`R` is Anki-owned**
   (native replay) and never appears in the template's shortcut UI.
+- Every `.shortcut-item` hint is a real `<button data-shortcut="…">`:
+  clicking it (or its inner `<kbd>`) applies the shortcut. Keys and clicks
+  both route through the single `window.applyShortcut` action table, so a
+  click can never do something its key does not. The hint bar never binds
+  `R`, and the hints stay visually quiet until hover/focus.
 - Every circular audio button has an `aria-label`; replay source is a
   **sibling** `.raw-audio-source` (never inside `<button>`, never
   `display:none`); playback delegates to the native replay link; re-tap is

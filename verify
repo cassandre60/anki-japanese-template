@@ -30,6 +30,8 @@ echo "==> verify: mature content-search fallback (duplicate cards / ambiguity)"
 python3 tests/test_mature_content.py
 echo "==> verify: back More lazy-load + prune behavior (headless Chrome, skipped gracefully without Chrome)"
 python3 tests/test_back_more.py
+echo "==> verify: clickable shortcut hints (headless Chrome, skipped gracefully without Chrome)"
+python3 tests/test_shortcut_clicks.py
 echo "==> verify: headless layout checks (skipped gracefully without Chrome)"
 python3 tests/test_layout.py
 echo "verify: OK"

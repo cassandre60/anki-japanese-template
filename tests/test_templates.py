@@ -241,6 +241,27 @@ def main():
     check("Back: custom template shortcuts are Z, X, C only",
           all(k in back for k in ['<kbd>Z</kbd>', '<kbd>X</kbd>', '<kbd>C</kbd>']))
 
+    # --- 6e2. Shortcut hints are clickable controls, not inert text ---
+    hints = re.search(r'<div class="shortcut-hints".*?</div>\s*\n', back, re.S)
+    check("Back: shortcut hint bar present", hints is not None)
+    if hints:
+        hints_src = hints.group(0)
+        check("Back: every shortcut hint is a button carrying data-shortcut",
+              len(re.findall(r'<button[^>]*class="shortcut-item"[^>]*data-shortcut="[a-z]"',
+                             hints_src)) == 3
+              and all(f'data-shortcut="{k}"' in hints_src for k in "zxc"))
+        check("Back: hint bar exposes group semantics", 'role="group"' in hints_src)
+    check("Back: one shared action table serves keys AND hint clicks",
+          "window.applyShortcut = function" in back
+          and re.search(r"keydown[\s\S]{0,400}?applyShortcut\(e\.key\)", back) is not None
+          and re.search(r"closest\('\.shortcut-item'\)[\s\S]{0,300}?applyShortcut\(", back) is not None)
+    check("Back: hint clicks never bind R (Anki-owned)",
+          re.search(r"data-shortcut=\"r\"", back, re.I) is None)
+    check("CSS: clickable shortcut hints keep button chrome reset + affordance",
+          re.search(r"\.shortcut-item\s*\{[^}]*cursor:\s*pointer", css) is not None
+          and re.search(r"\.shortcut-item:hover", css) is not None
+          and re.search(r"\.shortcut-item:focus-visible", css) is not None)
+
     # --- 6f. Audio terminology: playback indicator, not progress ring (Feature 4) ---
     check("Front: ring described as playback indicator (not true progress)",
           "playback indicator" in front.lower())

@@ -115,8 +115,10 @@ native-only circular audio (`playCircularAudio` → sibling replay link
 click, re-tap debounce, playback indicator pulse), definition truncator (blank boxes
 removed, then measure → `.is-truncated` → one-way `.is-expanded`),
 lightbox (backdrop-click / `Escape` close, alt preserved), back-only
-keyboard shortcuts (`F` full-card furigana, `T`/`X` translation reveal,
-`C` expanded-info toggle; `R` is Anki-owned, never listed).
+shortcuts (`F` full-card furigana, `T`/`X` translation reveal,
+`C` expanded-info toggle; `R` is Anki-owned, never listed). The hint bar's
+`.shortcut-item` buttons and the keydown listener both call
+`applyShortcut` — one action table, two triggers.
 
 ### Style (`Card 1 - Style.css`)
 

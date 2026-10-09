@@ -1322,10 +1322,38 @@ ruby:focus-within rt {
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  padding: 3px 7px;
+  margin: -3px 0;
+  font-family: inherit;
   font-size: 0.72rem;
   color: var(--text-muted);
   font-weight: 500;
   letter-spacing: 0.02em;
+  /* Clickable hint (applies the same action as its key): button chrome is
+     reset to pure text, and the accent only appears on hover/focus. */
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: color 0.15s ease, background-color 0.15s ease,
+              border-color 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.shortcut-item:hover,
+.shortcut-item:focus-visible {
+  color: var(--accent-color);
+  background-color: var(--accent-light);
+  border-color: var(--card-border);
+}
+
+.shortcut-item:focus-visible {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 1px;
+}
+
+.shortcut-item:active {
+  background-color: var(--accent-soft);
 }
 
 .shortcut-item kbd {
@@ -1340,6 +1368,12 @@ ruby:focus-within rt {
   border: 1px solid var(--card-border);
   border-radius: 4px;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.shortcut-item:hover kbd,
+.shortcut-item:focus-visible kbd {
+  color: var(--accent-color);
+  border-color: var(--accent-color);
 }
 
 .card:not(.nightMode):not(.night_mode) .shortcut-item kbd {

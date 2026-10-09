@@ -2490,3 +2490,7 @@ next ?
 ---
 
 everything looks good on mobile and desktop
+
+---
+
+make it sothat clicking on the keybaord shortcuts text applies them (for expmele for C andor X etc)

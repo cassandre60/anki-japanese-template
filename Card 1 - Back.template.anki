@@ -244,11 +244,15 @@
     <!-- SHORTCUT / FEATURE DISCOVERABILITY BAR
          R is Anki-owned (native replay) — never listed here as a template
          shortcut. Custom template shortcuts only: Z (furigana), X
-         (translation), C (expanded-info toggle). -->
-    <div class="shortcut-hints" aria-label="ショートカット">
-      <span class="shortcut-item"><kbd>Z</kbd> 振仮名</span>
-      <span class="shortcut-item"><kbd>X</kbd> 訳</span>
-      <span class="shortcut-item"><kbd>C</kbd> 展開</span>
+         (translation), C (expanded-info toggle).
+         Each hint is a real button: clicking it applies the shortcut, and
+         the click runs the SAME action code as the key (window.applyShortcut),
+         so the two can never drift apart. `data-shortcut` is the only source
+         of which action a hint fires. -->
+    <div class="shortcut-hints" role="group" aria-label="ショートカット">
+      <button type="button" class="shortcut-item" data-shortcut="z" title="振仮名 (Z)"><kbd>Z</kbd> 振仮名</button>
+      <button type="button" class="shortcut-item" data-shortcut="x" title="訳 (X)"><kbd>X</kbd> 訳</button>
+      <button type="button" class="shortcut-item" data-shortcut="c" title="展開 (C)"><kbd>C</kbd> 展開</button>
     </div>
 
   </div> <!-- End card-container -->
@@ -512,24 +516,21 @@
       } catch (e) { /* keep default rendering */ }
     };
 
-    window.initCardShortcuts = function() {
+    /* --- KEYBOARD SHORTCUTS + CLICKABLE HINT BAR ---
+       One action table, two triggers: the keydown listener and the
+       `.shortcut-item` hint buttons both call applyShortcut, so a click can
+       never do something the key doesn't (and vice versa). R is Anki-owned
+       and is neither bound here nor listed in the hint bar. */
+    window.applyShortcut = function(key) {
       var wrapper = document.querySelector('.card-wrapper.back-card');
-      if (!wrapper || wrapper.dataset.shortcutsBound) return;
-      wrapper.dataset.shortcutsBound = '1';
-      document.addEventListener('keydown', function(e) {
-        if (e.altKey || e.ctrlKey || e.metaKey) return;
-        var tag = (e.target && e.target.tagName) || '';
-        if (tag === 'INPUT' || tag === 'TEXTAREA' || (e.target && e.target.isContentEditable)) return;
-        var key = (e.key || '').toLowerCase();
-        if (key === 'z' || key === 'f') {
-          e.preventDefault();
-          e.stopPropagation();
-          wrapper.classList.toggle('furigana-mode');
-        } else if (key === 'x' || key === 't') {
-          e.preventDefault();
-          e.stopPropagation();
-          var box = wrapper.querySelector('.translation-box');
-          if (!box) return;
+      if (!wrapper) return false;
+      key = (key || '').toLowerCase();
+      if (key !== 'z' && key !== 'f' && key !== 'x' && key !== 't' && key !== 'c') return false;
+      if (key === 'z' || key === 'f') {
+        wrapper.classList.toggle('furigana-mode');
+      } else if (key === 'x' || key === 't') {
+        var box = wrapper.querySelector('.translation-box');
+        if (box) {
           var isRevealed = box.classList.contains('revealed');
           if (isRevealed) {
             box.classList.remove('revealed');
@@ -538,22 +539,45 @@
             box.classList.add('revealed');
             box.setAttribute('aria-expanded', 'true');
           }
-        } else if (key === 'c') {
-          e.preventDefault();
-          e.stopPropagation();
-          /* C toggles More + definitions (isolated: never touches translation) */
-          var moreBtn = wrapper.querySelector('.more-toggle');
-          var isCurrentlyOpen = moreBtn && moreBtn.getAttribute('aria-expanded') === 'true';
-
-          if (!isCurrentlyOpen) {
-            if (moreBtn) window.toggleMore(moreBtn);
-            wrapper.querySelectorAll('.primary-definition').forEach(function(d) {
-              window.expandDefinition(d);
-            });
-          } else {
-            if (moreBtn) window.toggleMore(moreBtn);
-          }
         }
+      } else if (key === 'c') {
+        /* C toggles More + definitions (isolated: never touches translation) */
+        var moreBtn = wrapper.querySelector('.more-toggle');
+        var isCurrentlyOpen = moreBtn && moreBtn.getAttribute('aria-expanded') === 'true';
+
+        if (!isCurrentlyOpen) {
+          if (moreBtn) window.toggleMore(moreBtn);
+          wrapper.querySelectorAll('.primary-definition').forEach(function(d) {
+            window.expandDefinition(d);
+          });
+        } else {
+          if (moreBtn) window.toggleMore(moreBtn);
+        }
+      }
+      return true;
+    };
+
+    window.initCardShortcuts = function() {
+      var wrapper = document.querySelector('.card-wrapper.back-card');
+      if (!wrapper || wrapper.dataset.shortcutsBound) return;
+      wrapper.dataset.shortcutsBound = '1';
+      document.addEventListener('keydown', function(e) {
+        if (e.altKey || e.ctrlKey || e.metaKey) return;
+        var tag = (e.target && e.target.tagName) || '';
+        if (tag === 'INPUT' || tag === 'TEXTAREA' || (e.target && e.target.isContentEditable)) return;
+        if (!window.applyShortcut(e.key)) return;
+        e.preventDefault();
+        e.stopPropagation();
+      });
+      /* Delegated on the wrapper (survives WebView DOM re-use and hints that
+         render late); `.closest` keeps clicks on the inner <kbd> working. */
+      wrapper.addEventListener('click', function(e) {
+        var item = e.target && e.target.closest && e.target.closest('.shortcut-item');
+        if (!item) return;
+        var key = item.getAttribute('data-shortcut');
+        if (!key || !window.applyShortcut(key)) return;
+        e.preventDefault();
+        e.stopPropagation();
       });
     };
 

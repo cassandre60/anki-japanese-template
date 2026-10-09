@@ -113,7 +113,7 @@ __CSS__
       <div class="html-content secondary-block extended-full">Full extended definition text that stays untruncated.</div>
     </div>
     <button type="button" class="more-toggle" aria-expanded="false">More <span class="more-caret">▾</span></button>
-    <div class="shortcut-hints"><span class="shortcut-item"><kbd>Z</kbd> hints</span></div>
+    <div class="shortcut-hints" role="group"><button type="button" class="shortcut-item" data-shortcut="z"><kbd>Z</kbd> hints</button></div>
     <div class="source-footer">SOURCE — some novel</div>
   </div>
 </div>
