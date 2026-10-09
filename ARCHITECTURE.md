@@ -130,7 +130,8 @@ centered word | right meta; stacked on narrow; freq/pitch/audio split sides), **
 (first dictionary, ≤2 senses, no appendices, `.primary-definition`-scoped),
 §6c truncator (3-line cap + fade + chevron), §7 audio rings (playback indicator, not true progress),
 §8 sentence/translation + secondary blocks, §9 zero-reflow ruby +
-§9b full-card furigana mode, §10 media/lightbox, §11 footer,
+§9b full-card furigana mode, §10 media/lightbox, §11 footer + clickable
+shortcut hint bar (kept on mobile as ≥44px touch targets),
 §12 listening (inert until `.listening-mode`), §13 mobile,
 §14 deletable Fuji backdrop, §15 reduced motion (+ blur kill),
 §16 card entrance (single 0.15s settle, no stagger; killed by §15),

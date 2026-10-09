@@ -37,6 +37,7 @@ run `./verify`; CI re-runs `./verify` after every push.
 | finish.sh deterministic ordering (push main before release, `--target main`), no-op protection | `tests/test_templates.py` §9 |
 | Stdlib-only sync, microsecond backups, finish.sh no-op guard | `tests/test_templates.py` §9 |
 | Content-driven height, no h-overflow, furigana containment, type hierarchy, 3-line clamp + one-way expand, listening target size, context grid, More collapsed by default, footer containment | `tests/test_layout.py` — headless Chrome on the **real** stylesheet; skipped gracefully when Chrome is absent |
+| Shortcut hints stay usable on phones: visible (never `display:none`), ≥44px tall, all three in one row inside the card | `tests/test_layout.py` mobile probes (desktop too) |
 | Listening resolver behavior: classic audio-only fields and `#listening` tag activate the audio front; gloss/no-tag, no-audio, and Frequency-legacy shapes keep the sentence front | `tests/test_front_modes.py` — extracts the real resolver from the front template and runs 6 state harnesses in headless Chrome; skipped gracefully when Chrome is absent |
 | Clean-environment pass, no forgotten files/deps | CI (`.github/workflows/verify.yml`) runs `./verify` |
 | Every UI element collapses when its field is empty | `tests/test_templates.py` §10 — conditional-enclosure parser over Front/Back, `:has()` shell-guard checks, JS self-removal checks |

@@ -101,6 +101,10 @@ mechanically verified*. Code implements; tests enforce.
   both route through the single `window.applyShortcut` action table, so a
   click can never do something its key does not. The hint bar never binds
   `R`, and the hints stay visually quiet until hover/focus.
+- The hint bar is **not** hidden on phones: the hints are clickable
+  controls, so on touch they are the only shortcut affordance there is.
+  Under 600px each hint is a ≥44px touch target in a single row inside the
+  card, and the resting opacity is raised (no `:hover` on touch to raise it).
 - Every circular audio button has an `aria-label`; replay source is a
   **sibling** `.raw-audio-source` (never inside `<button>`, never
   `display:none`); playback delegates to the native replay link; re-tap is

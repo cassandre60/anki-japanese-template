@@ -113,7 +113,11 @@ __CSS__
       <div class="html-content secondary-block extended-full">Full extended definition text that stays untruncated.</div>
     </div>
     <button type="button" class="more-toggle" aria-expanded="false">More <span class="more-caret">▾</span></button>
-    <div class="shortcut-hints" role="group"><button type="button" class="shortcut-item" data-shortcut="z"><kbd>Z</kbd> hints</button></div>
+    <div class="shortcut-hints" role="group" aria-label="ショートカット">
+      <button type="button" class="shortcut-item" data-shortcut="z" title="振仮名 (Z)"><kbd>Z</kbd> 振仮名</button>
+      <button type="button" class="shortcut-item" data-shortcut="x" title="訳 (X)"><kbd>X</kbd> 訳</button>
+      <button type="button" class="shortcut-item" data-shortcut="c" title="展開 (C)"><kbd>C</kbd> 展開</button>
+    </div>
     <div class="source-footer">SOURCE — some novel</div>
   </div>
 </div>
@@ -236,9 +240,24 @@ PROBE = """(() => {
   if (footer && wrapper) {
     r.footerInside = footer.getBoundingClientRect().bottom <= wrapper.getBoundingClientRect().bottom + 1;
   }
-  // Keyboard hints: visible on desktop, hidden on touch phones (dead weight).
+  // Shortcut hints: visible on desktop AND mobile (they are clickable
+  // controls, so phones keep them), and finger-sized on touch.
   const hints = document.querySelector('.shortcut-hints');
-  if (hints) { r.hintsDisplay = getComputedStyle(hints).display; }
+  if (hints) {
+    r.hintsDisplay = getComputedStyle(hints).display;
+    const items = hints.querySelectorAll('.shortcut-item');
+    r.hintCount = items.length;
+    if (items.length) {
+      const hb = hints.getBoundingClientRect();
+      const ib = items[0].getBoundingClientRect();
+      r.hintItemH = ib.height;
+      r.hintRows = new Set(Array.from(items).map(
+        (it) => Math.round(it.getBoundingClientRect().top))).size;
+      // Hint bar must stay inside the card wrapper (no bleed past the edge).
+      const wr = wrapper.getBoundingClientRect();
+      r.hintsInside = hb.left >= wr.left - 1 && hb.right <= wr.right + 1;
+    }
+  }
   // Hero header: 3-column grid (left | word | right) on wide screens,
   // word stacked on its own row with sides below on narrow phones.
   // The word must stay truly centered: |wordCenter - headerCenter| ≈ 0.
@@ -423,7 +442,7 @@ def main():
               back.get("moreCollapsed", False))
         check("desktop back: footer inside the card wrapper",
               back.get("footerInside", False))
-        check("desktop back: keyboard hints visible (physical keyboard)",
+        check("desktop back: shortcut hints visible",
               back.get("hintsDisplay", "none") != "none",
               f"display={back.get('hintsDisplay')}")
 
@@ -464,9 +483,18 @@ def main():
               mob["wrapperH"] < 0.95 * mob["viewportH"],
               f"wrapper={mob['wrapperH']:.0f} viewport={mob['viewportH']}")
         check("mobile back: sentence font stays >= 1rem", mob.get("sentFont", 1) >= 16)
-        check("mobile back: keyboard hints hidden (no physical keyboard)",
-              mob.get("hintsDisplay", "") == "none",
+        check("mobile back: shortcut hints visible (clickable on touch)",
+              mob.get("hintsDisplay", "none") != "none",
               f"display={mob.get('hintsDisplay')}")
+        check("mobile back: hint targets are finger-sized (>= 44px tall)",
+              mob.get("hintItemH", 0) >= 44,
+              f"h={mob.get('hintItemH', 0):.0f}px")
+        # Guarded on a measured height: hidden hints all report top=0, so a
+        # rows/inside check alone would pass vacuously on a display:none bar.
+        check("mobile back: all three hints fit one row inside the card",
+              mob.get("hintCount") == 3 and mob.get("hintRows") == 1
+              and mob.get("hintsInside", False) and mob.get("hintItemH", 0) > 0,
+              f"rows={mob.get('hintRows')} inside={mob.get('hintsInside')}")
 
     # ---- Narrow pane in wide viewport (container <600, viewport 1440) ----
     # Headless --dump-dom does not evaluate @container queries at all

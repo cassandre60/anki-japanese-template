@@ -1553,12 +1553,6 @@ ruby:focus-within rt {
     padding: 6px 10px;
   }
 
-  /* No physical keyboard on phones: the Z/X/C hints are dead weight
-     that costs scroll space on every card. Desktop keeps them. */
-  .shortcut-hints {
-    display: none;
-  }
-
   /* A50 fast-path: cloud drift is the only paint-heavy scenic animation
      (full-width SVG paths); stars/glow are cheap opacity pulses and stay.
      The -18px drift is imperceptible during a 5-10s review on 412px. */
@@ -1566,8 +1560,27 @@ ruby:focus-within rt {
     animation: none !important;
   }
 
+  /* Phones keep the Z/X/C bar: the hints are clickable controls, not
+     keyboard decoration, so on a touch device they are the only shortcut
+     affordance there is. No hover on touch, so the resting opacity is
+     raised here (the desktop .shortcut-hints:hover bump can't fire). */
+  .shortcut-hints {
+    opacity: 0.75;
+  }
+
+  /* Touch target: 44px min height (the desktop rule is a 20px text chip —
+     finger-sized on a mouse-driven card, too small for a thumb). */
   .shortcut-item {
     font-size: 0.65rem;
+    min-height: 44px;
+    padding: 8px 12px;
+    margin: 0;
+  }
+
+  .shortcut-item:active {
+    color: var(--accent-color);
+    background-color: var(--accent-soft);
+    border-color: var(--accent-color);
   }
 }
 
