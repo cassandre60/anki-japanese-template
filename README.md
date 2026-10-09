@@ -16,7 +16,7 @@ A modern, ultra-compact Japanese sentence-mining note type for Anki. Built for d
 - **🔢 Minimal by design** — every visible element must justify its screen space. The front is a pure retrieval surface (just the Japanese); the back is a quiet reading interface: target → reading → meaning → context, with secondary info collapsed behind `More ▾`. Anki is the SRS — no badges, dashboards, or grading UI.
 - **📱 Fluid responsive layout** — `clamp()` sizing with no breakpoint jumps; a compact Yūkei scenic band spans the card top on desktop and phones, with full-width sentence context below. Cards size to their content (no forced viewport fill).
 - **🔤 Zero-reflow furigana** — hidden by default, revealed on hover (desktop) / tap (mobile); **`F`** pins full-card furigana on the back. Nothing ever shifts.
-- **🔊 Native audio** — `文` / `言葉` buttons delegate to Anki's replay link (never HTML5 audio), with re-tap debounce so audio can't overlap on AnkiDroid. The ring is a playback indicator (a decorative play-pulse), not true progress. **`R`** is Anki's own shortcut (native replay) — the template never adds it. Custom template shortcuts: `Z` (furigana), `X` (translation), `C` (expanded-info).
+- **🔊 Native audio** — `文` / `言葉` buttons delegate to Anki's replay link (never HTML5 audio), with re-tap debounce so audio can't overlap on AnkiDroid. The ring is a playback indicator (a decorative play-pulse), not true progress. **`R`** is Anki's own shortcut (native replay) — the template never adds it. Custom template shortcuts: `Z` (furigana), `X` (translation), `C` (expanded-info) — and the hint bar at the bottom is clickable, so tapping `Z`/`X`/`C` applies the same action as the key.
 - **👁️ On-demand secondary info** — `T`/`X` reveals the translation; `More ▾` exposes the full Yomitan definition, extra context, kanji and general notes. `C` toggles expanded-info. Quiet by default.
 - **🖼️ Lightbox** — tap the scenic photo (or press <kbd>Enter</kbd>) for the full-quality original; closes on backdrop click or <kbd>Escape</kbd>.
 - **🏷️ Behavioral tags** — tags drive card behavior (e.g. `#listening` forces the listening front) and are never rendered as decoration.
@@ -71,11 +71,11 @@ Current set (20): `Expression`, `Definition`, `Kanji Notes`, `Source`, `Sentence
 
 ## 🚀 Installation
 
-**Option 1 — Quick install (recommended):** download `anki-japanese-template.apkg` from [Releases](https://github.com/mansourvery-hub/anki-japanese-template/releases), import via **File → Import**, then delete the sample cards (the note type is retained).
+**Option 1 — Quick install (recommended):** download `anki-japanese-template.apkg` from [Releases](https://github.com/cassandre60/anki-japanese-template/releases), import via **File → Import**, then delete the sample cards (the note type is retained).
 
 **Option 2 — Sync from source** (needs Anki + [Anki-Connect](https://ankiweb.net/shared/info/2055492159), Python 3 stdlib only):
 ```bash
-git clone https://github.com/mansourvery-hub/anki-japanese-template.git
+git clone https://github.com/cassandre60/anki-japanese-template.git
 cd anki-japanese-template
 python3 sync_to_anki.py    # snapshots live state to backups/, then pushes Front/Back/CSS
 python3 release_apkg.py    # exports sample deck to dist/*.apkg
