@@ -451,18 +451,24 @@ def main():
         )
         is not None,
     )
-    # Regression: wrapped hero/front with long grouped ruby (e.g.
+    # Regression: wrapped hero with long grouped ruby (e.g.
     # 針千本飲[はりせんぼんの]) overlapped the line above — .word-display
-    # (always-visible hero rt) and .sentence-display had plain 1.15/1.4
-    # line-heights with no interline furigana clearance, unlike
-    # .sentence-japanese §8. Both must reserve var(--furigana-headroom).
+    # (always-visible hero rt) had a plain 1.15 line-height with no interline
+    # furigana clearance, unlike .sentence-japanese §8.
     check(
         "word-display reserves furigana headroom in line-height (wrapped hero no overlap)",
         re.search(r"\.word-display\s*\{[^}]*line-height:\s*calc\([^}]*var\(--furigana-headroom\)", css_early) is not None,
     )
+    # Front never renders ruby (no furigana filter — test_templates §1), so
+    # .sentence-display must NOT pay interline furigana clearance: the extra
+    # headroom only added dead space to every front card.
     check(
-        "sentence-display reserves furigana headroom in line-height (wrapped front no overlap)",
-        re.search(r"\.sentence-display[\s\S]{0,800}?line-height:\s*calc\([^;]*var\(--furigana-headroom\)", css_early) is not None,
+        "sentence-display carries no furigana headroom (front is ruby-free)",
+        re.search(r"\.sentence-display[\s\S]{0,800}?var\(--furigana-headroom\)", css_early) is None,
+    )
+    check(
+        "back stacks long-hero sides below the word (is-long rule)",
+        re.search(r"\.hero-header\.is-long\s*\{[^}]*grid-template-areas:\s*\"word word\"\s*\"left right\"", css_early) is not None,
     )
     back_early = open(os.path.join(ROOT, "Card 1 - Back.template.anki"), encoding="utf-8").read()
     check(
@@ -472,6 +478,12 @@ def main():
     check(
         "translation box key handler supports Space as well as Enter",
         "translation-box" in back_early and 'event.key===\' \'' in back_early,
+    )
+    check(
+        "back stacks a long/wrapping hero below the word (initHeroStacking + is-long)",
+        "window.initHeroStacking = function" in back_early
+        and "is-long" in back_early
+        and "window.initHeroStacking();" in back_early,
     )
     if not CHROME:
         print("[SKIP] no headless Chrome found — layout checks skipped")
@@ -645,28 +657,50 @@ def main():
         check("wrapped hero: second-line rt never overlaps the line above (<=1.5px)",
               hero.get("worstOverlap", 999) <= 1.5,
               f"worstOverlap={hero.get('worstOverlap')}px")
-    # Front: rt is hover-only, so force it visible to simulate the hovered
-    # long reading on a wrapped line (same geometry, same clearance rule).
-    front_probe = OVERLAP_PROBE_TMPL.replace("__SEL__", "#wrapfront")
-    front_html = (
-        "<!doctype html><html><head><meta charset=\"utf-8\">"
-        "<style>__CSS__</style>"
-        "<style>.force-rt ruby rt{visibility:visible!important;opacity:1!important;}</style>"
-        "</head><body>"
-        "<div class=\"card\"><div class=\"card-wrapper\">"
-        "<div class=\"card-container\" style=\"max-width:700px\">"
-        "<div class=\"sentence-display force-rt\" id=\"wrapfront\">"
-        + WRAPPED_HERO_RUBY +
-        "、これは折り返しを強制するための追加テキストです"
-        "</div></div></div></div>"
-        "<script>document.title = JSON.stringify(" + front_probe + ");</script></body></html>"
-    )
-    wfront = render_overlap(front_html.replace("__CSS__", css), 900, 900)
-    check("wrapped front: overlap probe returned", wfront is not None)
-    if wfront:
-        check("wrapped front: second-line rt never overlaps the line above (<=1.5px)",
-              wfront.get("worstOverlap", 999) <= 1.5,
-              f"worstOverlap={wfront.get('worstOverlap')}px")
+    # ---- Long-hero stacking (real initHeroStacking from the back template)
+    # Short heroes keep the single row with sides hugging the word; long or
+    # wide heroes stack sides below, inside the card, word still centered.
+    import re as _re
+    _m = _re.search(r"window\.initHeroStacking = function\(\) \{.*?\n    \};",
+                    open(os.path.join(ROOT, "Card 1 - Back.template.anki"), encoding="utf-8").read(), re.S)
+    check("long-hero stacking: initHeroStacking extractable from back template", _m is not None)
+    if _m:
+        stack_probe = """(()=>{const h=document.querySelector('.hero-header');const w=document.querySelector('.hero-word-wrap');const l=document.querySelector('.hero-side-left');const r=document.querySelector('.hero-side-right');const hb=h.getBoundingClientRect(),wb=w.getBoundingClientRect(),lb=l.getBoundingClientRect(),rb=r.getBoundingClientRect();return {isLong:h.classList.contains('is-long'),stacked:(wb.bottom<=lb.top+1)&&(wb.bottom<=rb.top+1),edgeL:lb.left-hb.left,edgeR:hb.right-rb.right,centerOff:Math.abs((wb.left+wb.width/2)-(hb.left+hb.width/2)),hOverflow:document.documentElement.scrollWidth>document.documentElement.clientWidth+1};})()"""
+        for _label, _word, _want_long in (
+            ("short", "<ruby>澄<rt>す</rt></ruby>ます", False),
+            ("long", WRAPPED_HERO_RUBY, True),
+        ):
+            _html = (
+                "<!doctype html><html><head><meta charset=\"utf-8\">"
+                "<style>__CSS__</style></head><body>"
+                "<div class=\"card back-card\"><div class=\"card-wrapper back-card\">"
+                "<div class=\"card-container\">"
+                "<div class=\"hero-header\">"
+                "<div class=\"hero-side hero-side-left\"><div class=\"frequency-badge\">FREQ</div>"
+                "<div class=\"audio-row\"><span class=\"audio-btn-wrapper\">"
+                "<button class=\"circular-audio-btn small-audio-btn\">x</button></span></div></div>"
+                "<div class=\"hero-word-wrap\"><div class=\"word-display\">" + _word + "</div></div>"
+                "<div class=\"hero-side hero-side-right\"><div class=\"pitch-quiet\">[0]</div>"
+                "<div class=\"audio-row\"><span class=\"audio-btn-wrapper\">"
+                "<button class=\"circular-audio-btn small-audio-btn\">x</button></span></div></div>"
+                "</div></div></div></div>"
+                "<script>" + _m.group(0) + "\nwindow.initHeroStacking();\n"
+                "document.title = JSON.stringify(" + stack_probe + ");</script></body></html>"
+            )
+            _r = render_overlap(_html.replace("__CSS__", css), 1440, 900)
+            check(f"long-hero stacking ({_label}): probe returned", _r is not None)
+            if _r:
+                check(f"long-hero stacking ({_label}): {'stacked' if _want_long else 'single row'}",
+                      _r.get("isLong", None) is _want_long
+                      and _r.get("stacked", None) is (True if _want_long else False))
+                check(f"long-hero stacking ({_label}): sides inside the card",
+                      _r.get("edgeL", -999) >= -1 and _r.get("edgeR", -999) >= -1,
+                      f"edgeL={_r.get('edgeL')} edgeR={_r.get('edgeR')}")
+                check(f"long-hero stacking ({_label}): word centered (off-center <= 8px)",
+                      _r.get("centerOff", 999) <= 8,
+                      f"off={_r.get('centerOff')}")
+                check(f"long-hero stacking ({_label}): no horizontal overflow",
+                      not _r.get("hOverflow", True))
 
     print()
     print(f"{PASS} passed, {FAIL} failed")

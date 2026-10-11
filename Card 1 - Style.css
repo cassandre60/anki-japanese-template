@@ -4,7 +4,7 @@
  * (Tokyo Night Dark / Aki Paper Light)
  *
  * Source & documentation: https://github.com/cassandre60/anki-japanese-template
- * Version: v1.8.56 — auto-bumped by finish.sh; matches the GitHub release tag
+ * Version: v1.8.57 — auto-bumped by finish.sh; matches the GitHub release tag
  *
  * Front = pure retrieval surface (sentence / word / audio only).
  * Back = strong hierarchy: target → reading → meaning → context →
@@ -407,12 +407,11 @@
 .front-word-display {
   font-family: var(--font-japanese-serif);
   /* Refined, authoritative scale: dominant without visual shouting */
+  /* Front never renders ruby (no furigana filter — test_templates §1),
+     so no interline furigana clearance here; plain 1.4 keeps normal
+     single/multi-line density untouched. */
   font-size: clamp(1.8rem, 4.2vmin + 0.75rem, 4.2rem);
-  /* Multi-line clearance (same pattern as .sentence-japanese §8):
-     each wrapped line reserves room for absolute hover furigana above it
-     (rt height + gap), so second-line rt never overlaps the line above.
-     Single-line cards grow by the same headroom — accepted cost, matches back. */
-  line-height: calc(var(--furigana-headroom) + 1.4em);
+  line-height: 1.4;
   padding: 12px 16px;
   text-align: center;
   width: 100%;
@@ -526,6 +525,19 @@
   grid-area: right;
   justify-self: start;
   justify-content: flex-start;
+}
+
+/* Long-expression stacking: JS adds .is-long when .word-display wraps to
+   2+ lines (measured line rects). Side meta drops below the word — the same
+   stacked pattern as narrow phones — so frequency/audio never squeeze into
+   collapsed 1fr columns and spill past the card edges. */
+.hero-header.is-long {
+  grid-template-columns: 1fr 1fr;
+  grid-template-areas:
+    "word word"
+    "left right";
+  row-gap: 1px;
+  column-gap: 8px;
 }
 
 .hero-side .audio-row {

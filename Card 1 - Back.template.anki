@@ -581,12 +581,71 @@
       });
     };
 
+    /* --- LONG-HERO STACKING (2+ line Expression) ---
+       Measures rendered .word-display line rects; when the hero wraps,
+       .is-long moves side meta below the word (same stacked pattern as
+       narrow phones) so frequency/audio never squeeze into collapsed 1fr
+       columns and spill past the card edges. Idempotent (class removed
+       first) for WebView DOM re-use; silent fallback keeps the row hero. */
+    window.initHeroStacking = function() {
+      try {
+        var hero = document.querySelector('.hero-header');
+        var word = document.querySelector('.word-display');
+        if (!hero || !word) return;
+        hero.classList.remove('is-long');
+        /* Count rendered base-text lines (rt excluded: absolute rt boxes
+           would fake multi-line). Tops within 8px belong to one line. */
+        var tops = [];
+        try {
+          var walker = document.createTreeWalker(word, NodeFilter.SHOW_TEXT, {
+            acceptNode: function(n) {
+              if (n.parentElement && n.parentElement.closest
+                  && n.parentElement.closest('rt')) return NodeFilter.FILTER_REJECT;
+              if (!n.textContent || !n.textContent.trim()) return NodeFilter.FILTER_REJECT;
+              return NodeFilter.FILTER_ACCEPT;
+            }
+          });
+          while (walker.nextNode()) {
+            var rg = document.createRange();
+            rg.selectNodeContents(walker.currentNode);
+            var rects = rg.getClientRects();
+            for (var i = 0; i < rects.length; i++) tops.push(rects[i].top);
+          }
+        } catch (rangeErr) { tops = []; }
+        var lines;
+        if (tops.length) {
+          tops.sort(function(a, b) { return a - b; });
+          lines = 1;
+          for (var k = 1; k < tops.length; k++) {
+            if (tops[k] - tops[k - 1] > 8) lines++;
+          }
+        } else {
+          lines = (word.textContent || '').length > 10 ? 2 : 1;
+        }
+        /* A wide single line collapses the 1fr side columns to ~0 and the
+           meta spills past the card edges — same stacked cure. */
+        var spill = false;
+        try {
+          var hb = hero.getBoundingClientRect();
+          var left = hero.querySelector('.hero-side-left');
+          var right = hero.querySelector('.hero-side-right');
+          if (left && right) {
+            var lb = left.getBoundingClientRect();
+            var rb = right.getBoundingClientRect();
+            spill = (lb.left < hb.left - 1) || (rb.right > hb.right + 1);
+          }
+        } catch (spillErr) { spill = false; }
+        if (lines > 1 || spill) hero.classList.add('is-long');
+      } catch (e) { /* keep single-row hero */ }
+    };
+
     /* Prune first: the truncation measure below then runs over the small
        live DOM instead of the full hidden glossary. */
     window.pruneCompactedGlossary();
     window.renderFrequencyIndicator();
     window.initSecondarySection();
     window.initCardShortcuts();
+    window.initHeroStacking();
 
     /* Truncation is measured ONCE, after fonts settle: the boot-time measure
        forced a full sync layout over the glossary, then fonts.ready forced
@@ -600,6 +659,8 @@
       var run = function() {
         window.__truncQueued = false;
         window.initDefinitionTruncation();
+        /* Fonts can flip a borderline hero across the wrap boundary. */
+        window.initHeroStacking();
       };
       try {
         if (document.fonts && document.fonts.ready) document.fonts.ready.then(function() {
