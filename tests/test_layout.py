@@ -325,6 +325,80 @@ def render(html, width, height):
         return None
 
 
+# Regression probe for the wrapped-furigana edge case (long grouped ruby
+# such as 針千本飲[はりせんぼんの] on a 2-line hero/front): measures how far
+# any visible rt intrudes into base text on the line above. 0 (<=1.5px
+# subpixel tolerance) means the interline headroom holds; pre-fix values
+# were ~30px (hero) / ~10px (front).
+OVERLAP_PROBE_TMPL = """(() => {
+  const el = document.querySelector('__SEL__');
+  if (!el) return {worstOverlap: -1};
+  const rts = [...el.querySelectorAll('rt')];
+  const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, {
+    acceptNode(n) {
+      if (n.parentElement && n.parentElement.closest('rt')) return NodeFilter.FILTER_REJECT;
+      if (!n.textContent.trim()) return NodeFilter.FILTER_REJECT;
+      return NodeFilter.FILTER_ACCEPT;
+    }
+  });
+  const bases = [];
+  while (walker.nextNode()) {
+    const n = walker.currentNode;
+    const rg = document.createRange();
+    try { rg.selectNodeContents(n); } catch (e) { continue; }
+    for (const r of rg.getClientRects()) bases.push(r);
+  }
+  let worst = 0;
+  for (const rt of rts) {
+    const q = rt.getBoundingClientRect();
+    const rb = rt.closest('ruby').getBoundingClientRect();
+    for (const b of bases) {
+      const xo = Math.max(0, Math.min(q.right, b.right) - Math.max(q.left, b.left));
+      const yo = Math.max(0, Math.min(q.bottom, b.bottom) - Math.max(q.top, b.top));
+      if (xo > 1 && yo > 1 && b.bottom <= rb.top + 2) worst = Math.max(worst, yo);
+    }
+  }
+  return {worstOverlap: worst};
+})()"""
+
+
+def render_overlap(html, width, height):
+    """Dump-dom harness for a self-titling fixture (html already sets
+    document.title to a JSON probe result). Returns the parsed dict."""
+    with tempfile.TemporaryDirectory() as td:
+        path = os.path.join(td, "card.html")
+        with open(path, "w", encoding="utf-8") as f:
+            f.write(html)
+        try:
+            out = subprocess.run(
+                [CHROME, "--headless=new", "--disable-gpu",
+                 "--no-sandbox", "--hide-scrollbars",
+                 f"--window-size={width},{height}",
+                 "--virtual-time-budget=2000",
+                 "--dump-dom", f"file://{path}"],
+                capture_output=True, text=True, timeout=60,
+            ).stdout
+        except subprocess.TimeoutExpired:
+            return None
+    m = re.search(r"<title>(.*?)</title>", out, re.S)
+    if not m:
+        return None
+    try:
+        return json.loads(m.group(1))
+    except json.JSONDecodeError:
+        return None
+
+
+# Real-world grouped-ruby edge data (Hunter x Hunter mine): the hero
+# furigana field grouped 4 kanji under one 7-kana reading, which forced a
+# 2-line wrap whose second-line rt sat in the interline gap.
+WRAPPED_HERO_RUBY = (
+    "<ruby>指切<rt>ゆびき</rt></ruby>りげんまん 、"
+    "<ruby>嘘<rt>、うそ</rt></ruby>ついたら "
+    "<ruby>針千本飲<rt>はりせんぼんの</rt></ruby>ます"
+)
+
+
 def _hex_lum(hexcode: str) -> float:
     hexcode = hexcode.lstrip("#")
     rgb = tuple(int(hexcode[i:i + 2], 16) / 255.0 for i in (0, 2, 4))
@@ -377,6 +451,19 @@ def main():
         )
         is not None,
     )
+    # Regression: wrapped hero/front with long grouped ruby (e.g.
+    # 針千本飲[はりせんぼんの]) overlapped the line above — .word-display
+    # (always-visible hero rt) and .sentence-display had plain 1.15/1.4
+    # line-heights with no interline furigana clearance, unlike
+    # .sentence-japanese §8. Both must reserve var(--furigana-headroom).
+    check(
+        "word-display reserves furigana headroom in line-height (wrapped hero no overlap)",
+        re.search(r"\.word-display\s*\{[^}]*line-height:\s*calc\([^}]*var\(--furigana-headroom\)", css_early) is not None,
+    )
+    check(
+        "sentence-display reserves furigana headroom in line-height (wrapped front no overlap)",
+        re.search(r"\.sentence-display[\s\S]{0,800}?line-height:\s*calc\([^;]*var\(--furigana-headroom\)", css_early) is not None,
+    )
     back_early = open(os.path.join(ROOT, "Card 1 - Back.template.anki"), encoding="utf-8").read()
     check(
         "definition key handler supports Space as well as Enter",
@@ -400,8 +487,13 @@ def main():
     back = render(BACK_CARD.replace("__CSS__", css), 1440, 900)
     check("desktop back: probe returned", back is not None)
     if back:
-        check("desktop back: content-driven card (rich card < 100% viewport)",
-              back["wrapperH"] < back["viewportH"],
+        # Content-driven, not viewport-filled: the static no-100vh guard in
+        # test_templates.py is the fill proof. This height probe allows one
+        # furigana headroom (~0.55em hero, ~48px at desktop size) over the
+        # viewport for the worst-case fully-populated fixture — the wrapped-
+        # hero interline clearance fix correctly costs that on every card.
+        check("desktop back: content-driven card (rich card < 110% viewport)",
+              back["wrapperH"] < 1.10 * back["viewportH"],
               f"wrapper={back['wrapperH']:.0f} viewport={back['viewportH']}")
         check("desktop back: no horizontal overflow", not back["hOverflow"])
         check("desktop back: word furigana stays inside its line box",
@@ -479,8 +571,10 @@ def main():
               mob.get("heroAudioSize", 0) >= 32,
               f"audio={mob.get('heroAudioSize', 0):.0f}")
         check("mobile back: stacked (no context-grid columns)", not mob.get("twoCol", False))
+        # Same headroom allowance as desktop: the worst-case fixture grows by
+        # one hero headroom with the wrapped-furigana clearance fix.
         check("mobile back: no forced viewport fill",
-              mob["wrapperH"] < 0.95 * mob["viewportH"],
+              mob["wrapperH"] < mob["viewportH"],
               f"wrapper={mob['wrapperH']:.0f} viewport={mob['viewportH']}")
         check("mobile back: sentence font stays >= 1rem", mob.get("sentFont", 1) >= 16)
         check("mobile back: shortcut hints visible (clickable on touch)",
@@ -528,6 +622,51 @@ def main():
         check("front listening: view height in 20-35vh band",
               0.20 * fl["viewportH"] <= fl.get("listenH", 0) <= 0.36 * fl["viewportH"],
               f"listenH={fl.get('listenH', 0):.0f}")
+
+    # ---- Wrapped-furigana edge case (long grouped ruby, 2-line wrap) ----
+    # Hero: .word-display rt is always visible by product CSS, so a plain
+    # constrained container reproduces the reported 指切りげんまん overlap.
+    hero_probe = OVERLAP_PROBE_TMPL.replace("__SEL__", "#wrapword")
+    hero_html = (
+        "<!doctype html><html><head><meta charset=\"utf-8\">"
+        "<style>__CSS__</style></head><body>"
+        "<div class=\"card back-card\"><div class=\"card-wrapper back-card\">"
+        "<div class=\"card-container\" style=\"max-width:700px\">"
+        "<div class=\"hero-header\"><div class=\"hero-side hero-side-left\"></div>"
+        "<div class=\"hero-word-wrap\"><div class=\"word-display\" id=\"wrapword\">"
+        + WRAPPED_HERO_RUBY +
+        "</div></div><div class=\"hero-side hero-side-right\"></div></div>"
+        "</div></div></div>"
+        "<script>document.title = JSON.stringify(" + hero_probe + ");</script></body></html>"
+    )
+    hero = render_overlap(hero_html.replace("__CSS__", css), 900, 900)
+    check("wrapped hero: overlap probe returned", hero is not None)
+    if hero:
+        check("wrapped hero: second-line rt never overlaps the line above (<=1.5px)",
+              hero.get("worstOverlap", 999) <= 1.5,
+              f"worstOverlap={hero.get('worstOverlap')}px")
+    # Front: rt is hover-only, so force it visible to simulate the hovered
+    # long reading on a wrapped line (same geometry, same clearance rule).
+    front_probe = OVERLAP_PROBE_TMPL.replace("__SEL__", "#wrapfront")
+    front_html = (
+        "<!doctype html><html><head><meta charset=\"utf-8\">"
+        "<style>__CSS__</style>"
+        "<style>.force-rt ruby rt{visibility:visible!important;opacity:1!important;}</style>"
+        "</head><body>"
+        "<div class=\"card\"><div class=\"card-wrapper\">"
+        "<div class=\"card-container\" style=\"max-width:700px\">"
+        "<div class=\"sentence-display force-rt\" id=\"wrapfront\">"
+        + WRAPPED_HERO_RUBY +
+        "、これは折り返しを強制するための追加テキストです"
+        "</div></div></div></div>"
+        "<script>document.title = JSON.stringify(" + front_probe + ");</script></body></html>"
+    )
+    wfront = render_overlap(front_html.replace("__CSS__", css), 900, 900)
+    check("wrapped front: overlap probe returned", wfront is not None)
+    if wfront:
+        check("wrapped front: second-line rt never overlaps the line above (<=1.5px)",
+              wfront.get("worstOverlap", 999) <= 1.5,
+              f"worstOverlap={wfront.get('worstOverlap')}px")
 
     print()
     print(f"{PASS} passed, {FAIL} failed")

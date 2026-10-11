@@ -4,7 +4,7 @@
  * (Tokyo Night Dark / Aki Paper Light)
  *
  * Source & documentation: https://github.com/cassandre60/anki-japanese-template
- * Version: v1.8.55 — auto-bumped by finish.sh; matches the GitHub release tag
+ * Version: v1.8.56 — auto-bumped by finish.sh; matches the GitHub release tag
  *
  * Front = pure retrieval surface (sentence / word / audio only).
  * Back = strong hierarchy: target → reading → meaning → context →
@@ -408,7 +408,11 @@
   font-family: var(--font-japanese-serif);
   /* Refined, authoritative scale: dominant without visual shouting */
   font-size: clamp(1.8rem, 4.2vmin + 0.75rem, 4.2rem);
-  line-height: 1.4;
+  /* Multi-line clearance (same pattern as .sentence-japanese §8):
+     each wrapped line reserves room for absolute hover furigana above it
+     (rt height + gap), so second-line rt never overlaps the line above.
+     Single-line cards grow by the same headroom — accepted cost, matches back. */
+  line-height: calc(var(--furigana-headroom) + 1.4em);
   padding: 12px 16px;
   text-align: center;
   width: 100%;
@@ -531,13 +535,17 @@
 /* Furigana headroom: ruby rt renders 0.55em above the text with a 2px gap.
    Fields that use {{furigana:...}} get exactly that clearance as top padding
    (plus the base pad), so hover furigana never clips or overlaps neighbors.
+   Wrapped lines get the same clearance via line-height (same pattern as
+   .sentence-japanese §8): without it, second-line rt in the always-visible
+   hero (or F-mode) overlaps the line above — e.g. long grouped
+   針千本飲[はりせんぼんの] over a 2-line Expression.
    em-based => scales continuously with font size across all screen sizes. */
 .word-display {
   font-family: var(--font-japanese-serif);
   /* Hero target: unmistakably dominant, commanding, and present */
   font-size: clamp(3.0rem, 5.2vw + 1.2rem, 5.2rem);
   font-weight: 400;
-  line-height: 1.15;
+  line-height: calc(var(--furigana-headroom) + 1.15em);
   letter-spacing: 0.06em;
   padding-top: calc(var(--block-pad-y, 0px) + var(--furigana-headroom));
   padding-bottom: clamp(2px, 0.5vh, 6px);
