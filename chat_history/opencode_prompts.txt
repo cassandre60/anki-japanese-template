@@ -2502,3 +2502,7 @@ this is an edge case, identify the issue: can you fix it without breaking normal
 ---
 
 you fixed the furigana in back card but fucked up the front card (even thou there is never furigana up front) also did not fix the items next to word in back card being pushed away so much to the sides in case of a long expression so they look very bad (like frequency and audio buttons for ex)
+
+---
+
+works now, push

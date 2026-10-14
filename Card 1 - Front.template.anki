@@ -374,8 +374,14 @@
          sentence block with no text at all (neither Sentence nor
          Expression) leaves no padded void. Runs before the reveal. */
       try {
+        const hasVisualContent = (sd) =>
+          !!sd.querySelector('img, video, audio, source, picture, canvas, svg, iframe, object, embed');
         container.querySelectorAll('.sentence-display').forEach((sd) => {
-          if (!sd.textContent || !sd.textContent.trim()) sd.remove();
+          // Only collapse when there is neither textual nor visual content.
+          // A pasted screenshot sentence has an <img> but no text nodes;
+          // textContent-only checks would wrongly strip an image-only front
+          // (e.g. 油断大敵).
+          if ((!sd.textContent || !sd.textContent.trim()) && !hasVisualContent(sd)) sd.remove();
         });
       } catch (blankErr) {
         console.warn('[Blank Collapse]', blankErr);
