@@ -4,7 +4,7 @@
  * (Tokyo Night Dark / Aki Paper Light)
  *
  * Source & documentation: https://github.com/cassandre60/anki-japanese-template
- * Version: v1.8.58 — auto-bumped by finish.sh; matches the GitHub release tag
+ * Version: v1.8.59 — auto-bumped by finish.sh; matches the GitHub release tag
  *
  * Front = pure retrieval surface (sentence / word / audio only).
  * Back = strong hierarchy: target → reading → meaning → context →
@@ -459,6 +459,14 @@
 .front-word-display {
   display: none;
   font-weight: 400;
+}
+
+/* Hidden behavioral probes must never render as visible UI (tags, cloze
+   parts). The `hidden` attribute is the source of truth; this rule is a
+   belt-and-braces guard for WebViews that mishandle the attribute. */
+.tags-probe,
+.cloze-probe {
+  display: none !important;
 }
 
 .card-wrapper.word-mode .sentence-display {

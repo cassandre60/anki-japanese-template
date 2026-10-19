@@ -251,7 +251,9 @@
          of which action a hint fires. -->
     <div class="shortcut-hints" role="group" aria-label="ショートカット">
       <button type="button" class="shortcut-item" data-shortcut="z" title="振仮名 (Z)"><kbd>Z</kbd> 振仮名</button>
+      {{#Translation}}
       <button type="button" class="shortcut-item" data-shortcut="x" title="訳 (X)"><kbd>X</kbd> 訳</button>
+      {{/Translation}}
       <button type="button" class="shortcut-item" data-shortcut="c" title="展開 (C)"><kbd>C</kbd> 展開</button>
     </div>
 
@@ -513,6 +515,17 @@
         document.querySelectorAll('.translation-box, .revealed-static').forEach(function(el) {
           if (!el.textContent || !el.textContent.trim()) el.remove();
         });
+      } catch (e) { /* keep default rendering */ }
+      /* Principle: no control is shown unless its backing content exists.
+         Drop shortcut hints whose target is gone (X without a translation,
+         C without a More toggle), so dead affordances never linger. */
+      try {
+        if (!document.querySelector('.translation-box, .revealed-static')) {
+          document.querySelectorAll('.shortcut-item[data-shortcut="x"], .shortcut-item[data-shortcut="t"]').forEach(function(el) { el.remove(); });
+        }
+        if (!document.querySelector('.more-toggle')) {
+          document.querySelectorAll('.shortcut-item[data-shortcut="c"]').forEach(function(el) { el.remove(); });
+        }
       } catch (e) { /* keep default rendering */ }
     };
 
