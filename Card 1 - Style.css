@@ -4,7 +4,7 @@
  * (Tokyo Night Dark / Aki Paper Light)
  *
  * Source & documentation: https://github.com/cassandre60/anki-japanese-template
- * Version: v1.8.60 — auto-bumped by finish.sh; matches the GitHub release tag
+ * Version: v1.8.61 — auto-bumped by finish.sh; matches the GitHub release tag
  *
  * Front = pure retrieval surface (sentence / word / audio only).
  * Back = strong hierarchy: target → reading → meaning → context →
@@ -684,12 +684,67 @@
   text-align: center;
 }
 
+/* Color-coded pitch accent patterns (heiban / atamadaka / nakadaka / odaka).
+   The class is applied at runtime by initPitchAccents() based on the
+   circle coordinates inside the SVG; the palette uses the accent colors
+   so the contour stays legible on both themes. */
+:root {
+  --pitch-heiban: #60a5fa;
+  --pitch-atamadaka: #f87171;
+  --pitch-nakadaka: #fbbf24;
+  --pitch-odaka: #34d399;
+}
+.card.nightMode, .card.night_mode {
+  --pitch-heiban: #60a5fa;
+  --pitch-atamadaka: #f87171;
+  --pitch-nakadaka: #fbbf24;
+  --pitch-odaka: #34d399;
+}
+.card:not(.nightMode):not(.night_mode) {
+  --pitch-heiban: #2563eb;
+  --pitch-atamadaka: #dc2626;
+  --pitch-nakadaka: #d97706;
+  --pitch-odaka: #059669;
+}
+
 .pitch-quiet svg {
-  max-height: 2.2em;
+  height: clamp(38px, 4.8vh, 52px);
   width: auto;
   vertical-align: middle;
-  filter: opacity(0.85);
+  overflow: visible;
 }
+.pitch-quiet svg text {
+  fill: var(--text-primary) !important;
+  font-family: sans-serif !important;
+  font-weight: 500 !important;
+}
+.pitch-quiet svg path {
+  stroke-width: 2.2px !important;
+  stroke-linecap: round !important;
+  stroke-linejoin: round !important;
+}
+.pitch-quiet svg circle {
+  opacity: 1 !important;
+}
+.pitch-quiet svg circle[r="3.25"] {
+  fill: var(--card-bg) !important;
+}
+/* Heiban: flat contour (no downstep) -> blue */
+.pitch-quiet svg.pitch-heiban path { stroke: var(--pitch-heiban) !important; }
+.pitch-quiet svg.pitch-heiban circle { fill: var(--pitch-heiban) !important; }
+/* Atamadaka: high first mora -> red */
+.pitch-quiet svg.pitch-atamadaka path { stroke: var(--pitch-atamadaka) !important; }
+.pitch-quiet svg.pitch-atamadaka circle { fill: var(--pitch-atamadaka) !important; }
+/* Nakadaka: mid drop -> amber */
+.pitch-quiet svg.pitch-nakadaka path { stroke: var(--pitch-nakadaka) !important; }
+.pitch-quiet svg.pitch-nakadaka circle { fill: var(--pitch-nakadaka) !important; }
+/* Odaka: particle drop -> green */
+.pitch-quiet svg.pitch-odaka path { stroke: var(--pitch-odaka) !important; }
+.pitch-quiet svg.pitch-odaka circle { fill: var(--pitch-odaka) !important; }
+/* Fallback when pattern can't be detected -> accent color */
+.pitch-quiet svg path { stroke: var(--accent-color); }
+.pitch-quiet svg circle { fill: var(--accent-color); }
+.pitch-quiet svg circle[r="3.25"] { fill: var(--card-bg) !important; }
 
 /* --- Decorative separator: seigaiha-inspired arc motif ---
    A tiny wave pattern between the hero word/meaning and the context area.

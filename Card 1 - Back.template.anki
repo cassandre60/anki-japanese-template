@@ -251,9 +251,7 @@
          of which action a hint fires. -->
     <div class="shortcut-hints" role="group" aria-label="ショートカット">
       <button type="button" class="shortcut-item" data-shortcut="z" title="振仮名 (Z)"><kbd>Z</kbd> 振仮名</button>
-      {{#Translation}}
       <button type="button" class="shortcut-item" data-shortcut="x" title="訳 (X)"><kbd>X</kbd> 訳</button>
-      {{/Translation}}
       <button type="button" class="shortcut-item" data-shortcut="c" title="展開 (C)"><kbd>C</kbd> 展開</button>
     </div>
 
@@ -516,17 +514,6 @@
           if (!el.textContent || !el.textContent.trim()) el.remove();
         });
       } catch (e) { /* keep default rendering */ }
-      /* Principle: no control is shown unless its backing content exists.
-         Drop shortcut hints whose target is gone (X without a translation,
-         C without a More toggle), so dead affordances never linger. */
-      try {
-        if (!document.querySelector('.translation-box, .revealed-static')) {
-          document.querySelectorAll('.shortcut-item[data-shortcut="x"], .shortcut-item[data-shortcut="t"]').forEach(function(el) { el.remove(); });
-        }
-        if (!document.querySelector('.more-toggle')) {
-          document.querySelectorAll('.shortcut-item[data-shortcut="c"]').forEach(function(el) { el.remove(); });
-        }
-      } catch (e) { /* keep default rendering */ }
     };
 
     /* --- KEYBOARD SHORTCUTS + CLICKABLE HINT BAR ---
@@ -600,6 +587,42 @@
        narrow phones) so frequency/audio never squeeze into collapsed 1fr
        columns and spill past the card edges. Idempotent (class removed
        first) for WebView DOM re-use; silent fallback keeps the row hero. */
+    /* --- PITCH ACCENT AUTO-COLORING ---
+       Classifies each .pitch SVG by its contour (heiban / atamadaka /
+       nakadaka / odaka) from the circle coordinates, so the CSS palette
+       can color-code the diagram for legibility. Idempotent for DOM re-use. */
+    window.initPitchAccents = function() {
+      try {
+        document.querySelectorAll('.pitch-quiet svg').forEach(function(svg) {
+          if (svg.dataset.pitchClassified) return;
+          var circles = Array.from(svg.querySelectorAll('circle')).filter(function(c) {
+            var r = parseFloat(c.getAttribute('r') || '0');
+            return r >= 4;
+          });
+          if (circles.length < 2) return;
+          var ys = circles.map(function(c) {
+            return parseFloat(c.getAttribute('cy') || '0');
+          });
+          var moraYs = ys.slice(0, -1);
+          var particleY = ys[ys.length - 1];
+          var isHigh = function(y) { return y <= 15; };
+
+          var cls = 'pitch-nakadaka';
+          if (isHigh(moraYs[0])) {
+            cls = 'pitch-atamadaka';
+          } else if (isHigh(particleY)) {
+            cls = 'pitch-heiban';
+          } else if (moraYs.length && isHigh(moraYs[moraYs.length - 1]) && !isHigh(particleY)) {
+            cls = 'pitch-odaka';
+          } else {
+            cls = 'pitch-nakadaka';
+          }
+          svg.classList.add(cls);
+          svg.dataset.pitchClassified = '1';
+        });
+      } catch (e) { /* keep default rendering */ }
+    };
+
     window.initHeroStacking = function() {
       try {
         var hero = document.querySelector('.hero-header');
@@ -658,6 +681,7 @@
     window.renderFrequencyIndicator();
     window.initSecondarySection();
     window.initCardShortcuts();
+    window.initPitchAccents();
     window.initHeroStacking();
 
     /* Truncation is measured ONCE, after fonts settle: the boot-time measure
@@ -674,6 +698,7 @@
         window.initDefinitionTruncation();
         /* Fonts can flip a borderline hero across the wrap boundary. */
         window.initHeroStacking();
+        window.initPitchAccents();
       };
       try {
         if (document.fonts && document.fonts.ready) document.fonts.ready.then(function() {
