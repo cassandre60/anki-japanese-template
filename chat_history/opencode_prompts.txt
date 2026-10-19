@@ -2518,3 +2518,7 @@ flags should not display in front card
 ---
 
 make pitch accent diagram a bit bigger and color coded so i can see them at glance, right now they are a bit small and i can't really see them (they have all the same color and that color is not visible because of the background)
+
+---
+
+they work again but that appears no matter what, fix it
