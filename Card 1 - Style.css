@@ -4,7 +4,7 @@
  * (Tokyo Night Dark / Aki Paper Light)
  *
  * Source & documentation: https://github.com/cassandre60/anki-japanese-template
- * Version: v1.8.59 — auto-bumped by finish.sh; matches the GitHub release tag
+ * Version: v1.8.60 — auto-bumped by finish.sh; matches the GitHub release tag
  *
  * Front = pure retrieval surface (sentence / word / audio only).
  * Back = strong hierarchy: target → reading → meaning → context →
@@ -475,6 +475,11 @@
 
 .card-wrapper.word-mode .front-word-display {
   display: block;
+}
+
+/* Front retrieval purity (PRODUCT.md): hide Anki's reviewer flag on the front card */
+:not(:has(.back-card)) #_flag {
+  display: none !important;
 }
 
 

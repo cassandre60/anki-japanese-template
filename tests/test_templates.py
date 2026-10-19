@@ -158,6 +158,8 @@ def main():
           and "container-type: inline-size" in css)
     check("CSS: container-query media fallback for the context grid",
           re.search(r"@media \(min-width: 768px\)[\s\S]{0,200}\.context-grid", css) is not None)
+    check("CSS: front card hides Anki reviewer flag (#_flag)",
+          "#_flag" in css and ":not(:has(.back-card))" in css)
 
     # --- 6b. Redesign: hierarchy with frequency visualizer ---
     check("Back: no sticky tags bar (tags are behavioral metadata)",

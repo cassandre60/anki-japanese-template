@@ -2510,3 +2510,7 @@ works now, push
 ---
 
 fix these: flags should not deplay in front card; if something is missing (say an audio file etc) don't show the button for it (apply this principle to everything and add it as spec/invariant); do the same job for the chineese template (adapt); sync and push
+
+---
+
+flags should not display in front card
