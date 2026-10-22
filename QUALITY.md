@@ -123,7 +123,10 @@ mechanically verified*. Code implements; tests enforce.
 
 - Zero-reflow furigana: absolute `ruby rt`, hidden until
   `:hover`/`:active`/`:focus`; `F` mode pins all rt visible with no
-  reflow (same geometry).
+  reflow (same geometry). Hero exception: one grouped `.hero-reading`
+  annotation (the `reading` field) centered above the whole word —
+  per-kanji rt segments cannot pair in CSS and collide across ruby
+  engines; per-char hero rt is suppressed.
 - Content-driven card height (no `100vh`/`100dvh` fill); `container-type:
   inline-size` present; the retained context-grid compatibility rules keep
   their media-query fallback.

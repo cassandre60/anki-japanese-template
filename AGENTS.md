@@ -90,7 +90,9 @@ Archive every new user prompt to `chat_history/opencode_prompts.txt`
 
 ### 4. Technical constraints (summaries; full rules in QUALITY.md)
 
-Zero-reflow furigana (hidden, hover/tap reveal, absolute ruby) · native-only
+Zero-reflow furigana (hidden, hover/tap reveal, absolute ruby; hero uses
+one grouped `.hero-reading` annotation, per-char hero rt suppressed) ·
+native-only
 circular audio (`文`/`言葉`, sibling replay link, debounce, playback
 indicator — not true progress) · `R` is Anki-owned (never a template
 shortcut) · Mature Word Mode (`LONG_INTERVAL_DAYS = 365`,

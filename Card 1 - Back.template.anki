@@ -94,14 +94,14 @@
       </div>
 
       <div class="hero-word-wrap">
-        {{#furigana}}
-          <div class="word-display">{{edit:furigana:furigana}}</div>
-        {{/furigana}}
-        {{^furigana}}
-          {{#Expression}}
-            <div class="word-display">{{edit:furigana:Expression}}</div>
-          {{/Expression}}
-        {{/furigana}}
+        {{#Expression}}
+          <div class="word-display">
+            {{#reading}}
+              <span class="hero-reading">{{reading}}</span>
+            {{/reading}}
+            {{edit:furigana:Expression}}
+          </div>
+        {{/Expression}}
       </div>
 
       <div class="hero-side hero-side-right">
@@ -636,7 +636,7 @@
           var walker = document.createTreeWalker(word, NodeFilter.SHOW_TEXT, {
             acceptNode: function(n) {
               if (n.parentElement && n.parentElement.closest
-                  && n.parentElement.closest('rt')) return NodeFilter.FILTER_REJECT;
+                  && n.parentElement.closest('rt, .hero-reading')) return NodeFilter.FILTER_REJECT;
               if (!n.textContent || !n.textContent.trim()) return NodeFilter.FILTER_REJECT;
               return NodeFilter.FILTER_ACCEPT;
             }
