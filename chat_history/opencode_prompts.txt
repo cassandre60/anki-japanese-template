@@ -2522,3 +2522,9 @@ make pitch accent diagram a bit bigger and color coded so i can see them at glan
 ---
 
 they work again but that appears no matter what, fix it
+
+as you can see the furigan for the expression is messed up, why did this happen and how to fix it (screenshot: hero furigana of 住所 scattered — じ ゅ う ょ distributed/overhanging the kanji instead of じゅう|しょ per-kanji pairing)
+
+---
+
+this is supposed to be a trivial task (maybe one css line), i don't know why you are doing such deep research

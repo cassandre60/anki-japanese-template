@@ -316,7 +316,7 @@ def render(html, width, height):
         except subprocess.TimeoutExpired:
             return None
     import re
-    m = re.search(r"<title>(.*?)</title>", out, re.S)
+    m = re.search(r"<title>(.*?)</title>", out, re.DOTALL)
     if not m:
         return None
     try:
@@ -380,7 +380,7 @@ def render_overlap(html, width, height):
             ).stdout
         except subprocess.TimeoutExpired:
             return None
-    m = re.search(r"<title>(.*?)</title>", out, re.S)
+    m = re.search(r"<title>(.*?)</title>", out, re.DOTALL)
     if not m:
         return None
     try:
@@ -426,7 +426,7 @@ def main():
     light = re.search(
         r"\.card:not\(\.nightMode\):not\(\.night_mode\)\s*\{([^}]*)\}",
         css_early,
-        re.S,
+        re.DOTALL,
     )
     light_body = light.group(1) if light else ""
     for name in ("very-common", "common", "medium", "uncommon", "rare"):
@@ -662,7 +662,7 @@ def main():
     # wide heroes stack sides below, inside the card, word still centered.
     import re as _re
     _m = _re.search(r"window\.initHeroStacking = function\(\) \{.*?\n    \};",
-                    open(os.path.join(ROOT, "Card 1 - Back.template.anki"), encoding="utf-8").read(), re.S)
+                    open(os.path.join(ROOT, "Card 1 - Back.template.anki"), encoding="utf-8").read(), _re.DOTALL)
     check("long-hero stacking: initHeroStacking extractable from back template", _m is not None)
     if _m:
         stack_probe = """(()=>{const h=document.querySelector('.hero-header');const w=document.querySelector('.hero-word-wrap');const l=document.querySelector('.hero-side-left');const r=document.querySelector('.hero-side-right');const hb=h.getBoundingClientRect(),wb=w.getBoundingClientRect(),lb=l.getBoundingClientRect(),rb=r.getBoundingClientRect();return {isLong:h.classList.contains('is-long'),stacked:(wb.bottom<=lb.top+1)&&(wb.bottom<=rb.top+1),edgeL:lb.left-hb.left,edgeR:hb.right-rb.right,centerOff:Math.abs((wb.left+wb.width/2)-(hb.left+hb.width/2)),hOverflow:document.documentElement.scrollWidth>document.documentElement.clientWidth+1};})()"""
@@ -701,6 +701,83 @@ def main():
                       f"off={_r.get('centerOff')}")
                 check(f"long-hero stacking ({_label}): no horizontal overflow",
                       not _r.get("hOverflow", True))
+
+    # ---- Furigana annotation-to-base fit (real initFuriganaFit from the
+    # back template). Regression: a grouped reading wider than its base
+    # (住[じゅう] = 3 full-width kana over 1 kanji, as rendered by the
+    # furigana filter with <rb> markup) centered as one absolute string and
+    # scattered across neighboring kanji. The fit shrinks oversized rt to
+    # span exactly its base; rt is out-of-flow, so the base line never
+    # reflows. Verified live in QtWebEngine 6.11 (Chromium ruby NG layout).
+    import re as _re2
+    _mfit = _re2.search(
+        r"window\.initFuriganaFit = function\(\) \{.*?\n    \};",
+        open(os.path.join(ROOT, "Card 1 - Back.template.anki"), encoding="utf-8").read(),
+        _re2.DOTALL,
+    )
+    check("furigana fit: initFuriganaFit extractable from back template", _mfit is not None)
+    if _mfit:
+        fit_probe = """(function(){
+  var res={};
+  var snap=[];
+  document.querySelectorAll('.back-card ruby').forEach(function(ry,i){
+    var r=ry.getBoundingClientRect(); snap.push([i, r.left.toFixed(2), r.top.toFixed(2), r.width.toFixed(2)]);
+  });
+  window.initFuriganaFit();
+  var snap2=[];
+  document.querySelectorAll('.back-card ruby').forEach(function(ry,i){
+    var r=ry.getBoundingClientRect(); snap2.push([i, r.left.toFixed(2), r.top.toFixed(2), r.width.toFixed(2)]);
+  });
+  res.baseUnchanged = JSON.stringify(snap) === JSON.stringify(snap2);
+  res.fits=[];
+  document.querySelectorAll('.back-card ruby').forEach(function(ry,i){
+    var rt=ry.querySelector('rt'); if(!rt) return;
+    res.fits.push({i:i,
+      base: Math.round(ry.getBoundingClientRect().width*10)/10,
+      rt: Math.round(rt.getBoundingClientRect().width*10)/10,
+      inlineFs: rt.style.fontSize,
+      computedFs: Math.round(parseFloat(getComputedStyle(rt).fontSize)*10)/10});
+  });
+  return res;
+})()"""
+        fit_html = (
+            "<!doctype html><html><head><meta charset=\"utf-8\">"
+            "<style>__CSS__</style></head><body>"
+            "<div class=\"card back-card\"><div class=\"card-wrapper back-card\">"
+            "<div class=\"card-container\">"
+            "<div class=\"hero-header\"><div class=\"hero-side hero-side-left\"></div>"
+            "<div class=\"hero-word-wrap\"><div class=\"word-display\">"
+            "<div class=\"EFDRC-outline EFDRC-ctrl\">"
+            "<ruby><rb>住</rb><rt>じゅう</rt></ruby>"
+            "<ruby><rb>所</rb><rt>しょ</rt></ruby>"
+            "</div></div></div>"
+            "<div class=\"hero-side hero-side-right\"></div></div>"
+            "<div class=\"sentence-japanese\"><ruby>澄<rt>す</rt></ruby>ます。</div>"
+            "</div></div></div>"
+            "<script>" + _mfit.group(0) +
+            "\ndocument.title = JSON.stringify(" + fit_probe + ");</script>"
+            "</body></html>"
+        )
+        fit = render_overlap(fit_html.replace("__CSS__", css), 1440, 900)
+        check("furigana fit: probe returned", fit is not None)
+        if fit:
+            fits = fit.get("fits", [])
+            long_pair = next((f for f in fits if f.get("i") == 0), None)
+            check(
+                "furigana fit: grouped じゅう shrunk to its 1-kanji base (was ~137px scatter)",
+                long_pair is not None and long_pair["rt"] <= long_pair["base"] + 1,
+                f"rt={long_pair and long_pair['rt']} base={long_pair and long_pair['base']}",
+            )
+            check(
+                "furigana fit: small single-kana annotation untouched (no inline fontSize)",
+                any(f.get("i") == 2 and f.get("inlineFs", "x") == ""
+                    and f.get("rt", 0) <= f.get("base", 0) + 1.5 for f in fits),
+                str([f for f in fits if f.get("i") == 2]),
+            )
+            check(
+                "furigana fit: zero-reflow (ruby base rects identical pre/post)",
+                fit.get("baseUnchanged") is True,
+            )
 
     print()
     print(f"{PASS} passed, {FAIL} failed")
