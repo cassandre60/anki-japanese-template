@@ -623,38 +623,6 @@
       } catch (e) { /* keep default rendering */ }
     };
 
-    /* --- FURIGANA ANNOTATION-TO-BASE FIT ---
-       A grouped reading can be wider than its base (e.g. 住[じゅう]:
-       three full-width kana over one kanji). The centered annotation
-       then overhangs both sides and lands between kanji, which renders
-       as scattered kana. When an annotation box is wider than its ruby
-       base, shrink its font-size proportionally so the kana span
-       exactly the base width — the compression a Japanese book does.
-       rt is out-of-flow (absolute), so this NEVER reflows the base
-       line. Recomputes deterministically (inline font cleared before
-       measuring), so it is idempotent under WebView DOM re-use and
-       survives late webfont swaps via the fonts.ready re-run. */
-    window.initFuriganaFit = function() {
-      try {
-        document.querySelectorAll('.back-card ruby').forEach(function(ruby) {
-          var rts = Array.prototype.slice.call(ruby.children)
-            .filter(function(n) { return n.tagName === 'RT'; });
-          /* Only the single-annotation shapes the furigana filter emits;
-             multi-rt native segmentation is left to the browser. */
-          if (rts.length !== 1) return;
-          if (ruby.querySelector('rt br, rt img, rt svg, b, span, i, img, svg')) return;
-          var rt = rts[0];
-          rt.style.fontSize = '';
-          var baseW = ruby.getBoundingClientRect().width;
-          var rtW = rt.getBoundingClientRect().width;
-          if (!baseW || !rtW || rtW <= baseW + 0.5) return;
-          var fs = parseFloat(getComputedStyle(rt).fontSize);
-          if (!fs || !isFinite(fs)) return;
-          rt.style.fontSize = (fs * baseW / rtW).toFixed(2) + 'px';
-        });
-      } catch (e) { /* keep default rendering */ }
-    };
-
     window.initHeroStacking = function() {
       try {
         var hero = document.querySelector('.hero-header');
@@ -714,7 +682,6 @@
     window.initSecondarySection();
     window.initCardShortcuts();
     window.initPitchAccents();
-    window.initFuriganaFit();
     window.initHeroStacking();
 
     /* Truncation is measured ONCE, after fonts settle: the boot-time measure
@@ -732,7 +699,6 @@
         /* Fonts can flip a borderline hero across the wrap boundary. */
         window.initHeroStacking();
         window.initPitchAccents();
-        window.initFuriganaFit();
       };
       try {
         if (document.fonts && document.fonts.ready) document.fonts.ready.then(function() {

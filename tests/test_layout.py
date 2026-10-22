@@ -702,82 +702,33 @@ def main():
                 check(f"long-hero stacking ({_label}): no horizontal overflow",
                       not _r.get("hOverflow", True))
 
-    # ---- Furigana annotation-to-base fit (real initFuriganaFit from the
-    # back template). Regression: a grouped reading wider than its base
-    # (住[じゅう] = 3 full-width kana over 1 kanji, as rendered by the
-    # furigana filter with <rb> markup) centered as one absolute string and
-    # scattered across neighboring kanji. The fit shrinks oversized rt to
-    # span exactly its base; rt is out-of-flow, so the base line never
-    # reflows. Verified live in QtWebEngine 6.11 (Chromium ruby NG layout).
-    import re as _re2
-    _mfit = _re2.search(
-        r"window\.initFuriganaFit = function\(\) \{.*?\n    \};",
-        open(os.path.join(ROOT, "Card 1 - Back.template.anki"), encoding="utf-8").read(),
-        _re2.DOTALL,
+    # ---- Hero furigana annotation typography (CSS-only regression) ----
+    # Chromium/QtWebEngine ruby layout gives each annotation char full
+    # advance, and the hero word letter-spacing was inherited by rt -- a
+    # grouped reading wider than its base (住[じゅう], emitted with <rb>
+    # markup by the furigana filter) rendered as scattered kana ("じ ゅ う
+    # ょ") overhanging the kanji. Fix is hero-scoped on .word-display rt:
+    # no inherited letter-spacing + half-width alternates for small kana
+    # (halt). No JS: both annotations keep the same 0.55em size; the rest
+    # of the page furigana stays untouched (report against v1.8.63).
+    check(
+        "hero rt drops inherited letter-spacing (grouped reading not scattered)",
+        re.search(r"\.word-display ruby rt\s*\{[^}]*letter-spacing:\s*normal", css_early) is not None,
     )
-    check("furigana fit: initFuriganaFit extractable from back template", _mfit is not None)
-    if _mfit:
-        fit_probe = """(function(){
-  var res={};
-  var snap=[];
-  document.querySelectorAll('.back-card ruby').forEach(function(ry,i){
-    var r=ry.getBoundingClientRect(); snap.push([i, r.left.toFixed(2), r.top.toFixed(2), r.width.toFixed(2)]);
-  });
-  window.initFuriganaFit();
-  var snap2=[];
-  document.querySelectorAll('.back-card ruby').forEach(function(ry,i){
-    var r=ry.getBoundingClientRect(); snap2.push([i, r.left.toFixed(2), r.top.toFixed(2), r.width.toFixed(2)]);
-  });
-  res.baseUnchanged = JSON.stringify(snap) === JSON.stringify(snap2);
-  res.fits=[];
-  document.querySelectorAll('.back-card ruby').forEach(function(ry,i){
-    var rt=ry.querySelector('rt'); if(!rt) return;
-    res.fits.push({i:i,
-      base: Math.round(ry.getBoundingClientRect().width*10)/10,
-      rt: Math.round(rt.getBoundingClientRect().width*10)/10,
-      inlineFs: rt.style.fontSize,
-      computedFs: Math.round(parseFloat(getComputedStyle(rt).fontSize)*10)/10});
-  });
-  return res;
-})()"""
-        fit_html = (
-            "<!doctype html><html><head><meta charset=\"utf-8\">"
-            "<style>__CSS__</style></head><body>"
-            "<div class=\"card back-card\"><div class=\"card-wrapper back-card\">"
-            "<div class=\"card-container\">"
-            "<div class=\"hero-header\"><div class=\"hero-side hero-side-left\"></div>"
-            "<div class=\"hero-word-wrap\"><div class=\"word-display\">"
-            "<div class=\"EFDRC-outline EFDRC-ctrl\">"
-            "<ruby><rb>住</rb><rt>じゅう</rt></ruby>"
-            "<ruby><rb>所</rb><rt>しょ</rt></ruby>"
-            "</div></div></div>"
-            "<div class=\"hero-side hero-side-right\"></div></div>"
-            "<div class=\"sentence-japanese\"><ruby>澄<rt>す</rt></ruby>ます。</div>"
-            "</div></div></div>"
-            "<script>" + _mfit.group(0) +
-            "\ndocument.title = JSON.stringify(" + fit_probe + ");</script>"
-            "</body></html>"
-        )
-        fit = render_overlap(fit_html.replace("__CSS__", css), 1440, 900)
-        check("furigana fit: probe returned", fit is not None)
-        if fit:
-            fits = fit.get("fits", [])
-            long_pair = next((f for f in fits if f.get("i") == 0), None)
-            check(
-                "furigana fit: grouped じゅう shrunk to its 1-kanji base (was ~137px scatter)",
-                long_pair is not None and long_pair["rt"] <= long_pair["base"] + 1,
-                f"rt={long_pair and long_pair['rt']} base={long_pair and long_pair['base']}",
-            )
-            check(
-                "furigana fit: small single-kana annotation untouched (no inline fontSize)",
-                any(f.get("i") == 2 and f.get("inlineFs", "x") == ""
-                    and f.get("rt", 0) <= f.get("base", 0) + 1.5 for f in fits),
-                str([f for f in fits if f.get("i") == 2]),
-            )
-            check(
-                "furigana fit: zero-reflow (ruby base rects identical pre/post)",
-                fit.get("baseUnchanged") is True,
-            )
+    check(
+        "hero rt uses half-width alternates for small kana (halt)",
+        re.search(r'\.word-display ruby rt\s*\{[^}]*font-feature-settings:[^;]*"halt"', css_early) is not None,
+    )
+    check(
+        "rt letter-spacing fix is hero-scoped (general ruby rt untouched)",
+        (lambda hits: len(hits) == 1 and ".word-display" in hits[0])(
+            re.findall(r"([^\n{}]*ruby rt[^\n{}]*)\s*\{[^}]*letter-spacing", css_early)
+        ),
+    )
+    check(
+        "no JS furigana fit controller (CSS-only by design)",
+        "initFuriganaFit" not in open(os.path.join(ROOT, "Card 1 - Back.template.anki"), encoding="utf-8").read(),
+    )
 
     print()
     print(f"{PASS} passed, {FAIL} failed")

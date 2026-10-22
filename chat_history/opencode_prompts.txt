@@ -2528,3 +2528,5 @@ as you can see the furigan for the expression is messed up, why did this happen 
 ---
 
 this is supposed to be a trivial task (maybe one css line), i don't know why you are doing such deep research
+
+it now looks weird as if both do not have the same size, also it affected all furigana in page not just expression, this should be a trivial task, no JS, nothing complicated, i don't know why you can't do it
