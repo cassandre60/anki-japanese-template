@@ -114,6 +114,9 @@ section+button self-remove when secondary content is absent),
 native-only circular audio (`playCircularAudio` → sibling replay link
 click, re-tap debounce, playback indicator pulse), definition truncator (blank boxes
 removed, then measure → `.is-truncated` → one-way `.is-expanded`),
+furigana annotation-to-base fit (`initFuriganaFit`: shrinks an oversized
+grouped annotation — e.g. 住[じゅう] — to span exactly its ruby base;
+out-of-flow rt, so zero reflow; re-runs on fonts.ready),
 lightbox (backdrop-click / `Escape` close, alt preserved), back-only
 shortcuts (`F` full-card furigana, `T`/`X` translation reveal,
 `C` expanded-info toggle; `R` is Anki-owned, never listed). The hint bar's
