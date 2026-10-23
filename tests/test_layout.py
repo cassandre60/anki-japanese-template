@@ -706,14 +706,15 @@ def main():
                 check(f"long-hero stacking ({_label}): no horizontal overflow",
                       not _r.get("hOverflow", True))
 
-    # ---- Hero furigana annotation (native in-flow ruby on furigana field) ----
-    # Regression history: hero rendered each per-kanji annotation as an
-    # absolute centered string (report v1.8.63-65); a reading wider than its
-    # base overhangs and adjacent strings collide (じゅう|しょ over 住|所).
-    # Fix: render the furigana field with NATIVE in-flow ruby so the browser
-    # pairs each reading to its kanji, then override the global absolute-rt
-    # rule to static for the hero only. Reserve headroom (padding-top +
-    # line-height) already absorbs the in-flow rt height.
+    # ---- Hero furigana annotation (absolute centering over each rb) ----
+    # Regression history: hero used per-kanji absolute ruby segments which
+    # center each annotation over its kanji — verified correct for
+    # 痛[いた]め 付[つ]ける (いた over 痛, つ over 付, る bare). An attempt
+    # to switch the hero rt to static native ruby broke it entirely (rt
+    # rendered inline after rb instead of above it, report v1.8.66).
+    # Absolute centering is restored: it cannot collide when each reading
+    # spans at most its base, and the reserved headroom absorbs overhang
+    # without reflow.
     back_t = open(os.path.join(ROOT, "Card 1 - Back.template.anki"), encoding="utf-8").read()
     m_hero = re.search(
         r'\{\{edit:furigana:furigana\}\}', back_t
@@ -724,8 +725,8 @@ def main():
     )
     check("hero no longer renders the flat reading field", m_reading is None)
     check(
-        "hero rt uses native in-flow ruby (position: static)",
-        re.search(r'\.word-display ruby rt\s*\{[^}]*position:\s*static', css_early.replace("\n", " ")) is not None,
+        "hero rt uses absolute centering over each rb",
+        re.search(r'\.word-display ruby rt\s*\{[^}]*position:\s*absolute[^}]*transform:\s*translateX\(-50%\)', css_early.replace("\n", " ")) is not None,
     )
     check(
         "hero rt does not inherit word letter-spacing (+ halt smalls)",
@@ -733,11 +734,7 @@ def main():
         and re.search(r'font-feature-settings:[^;]*"halt" 1', css_early) is not None,
     )
     check(
-        "hero-scoped: global ruby rt stays absolute for zero-reflow hover elsewhere",
-        re.search(r'^ruby rt\s*\{[^}]*position:\s*absolute', css_early, re.M) is not None,
-    )
-    check(
-        "no JS furigana fit controller (CSS-only by design)",
+        "no JS furigana controller (CSS-only by design)",
         "initFuriganaFit" not in back_t,
     )
 
