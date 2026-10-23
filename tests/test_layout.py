@@ -71,7 +71,7 @@ __CSS__
           </span>
         </div>
       </div>
-      <div class="hero-word-wrap"><div class="word-display" id="word"><span class="hero-reading">す</span><ruby>澄<rt>す</rt></ruby>ます</div></div>
+      <div class="hero-word-wrap"><div class="word-display" id="word"><ruby>澄<rt>す</rt></ruby>ます</div></div>
       <div class="hero-side hero-side-right">
         <div class="pitch-quiet">[0]</div>
         <div class="audio-row">
@@ -181,13 +181,10 @@ PROBE = """(() => {
     const rb = word.getBoundingClientRect();
     const rt = word.querySelector('rt');
     r.wordFont = parseFloat(getComputedStyle(word).fontSize);
-    const ann = word.querySelector('.hero-reading');
-    if (ann) {
-      // new hero shape: one grouped reading span replaces per-char rt
-      const ab = ann.getBoundingClientRect();
-      r.wordRtInside = ab.top >= rb.top - 0.5 && ab.bottom <= rb.bottom + 0.5;
-    } else if (rt && getComputedStyle(rt).display !== 'none') {
+    if (rt) {
       const rtb = rt.getBoundingClientRect();
+      // hero uses native in-flow ruby: annotation is vertically inside
+      // the word's line box (cannot overlap the line above).
       r.wordRtInside = rtb.top >= rb.top - 0.5 && rtb.bottom <= rb.bottom + 0.5;
     }
   }
@@ -674,7 +671,7 @@ def main():
     if _m:
         stack_probe = """(()=>{const h=document.querySelector('.hero-header');const w=document.querySelector('.hero-word-wrap');const l=document.querySelector('.hero-side-left');const r=document.querySelector('.hero-side-right');const hb=h.getBoundingClientRect(),wb=w.getBoundingClientRect(),lb=l.getBoundingClientRect(),rb=r.getBoundingClientRect();return {isLong:h.classList.contains('is-long'),stacked:(wb.bottom<=lb.top+1)&&(wb.bottom<=rb.top+1),edgeL:lb.left-hb.left,edgeR:hb.right-rb.right,centerOff:Math.abs((wb.left+wb.width/2)-(hb.left+hb.width/2)),hOverflow:document.documentElement.scrollWidth>document.documentElement.clientWidth+1};})()"""
         for _label, _word, _want_long in (
-            ("short", "<span class=\"hero-reading\">すます</span><ruby>澄<rt>す</rt></ruby>ます", False),
+            ("short", "<ruby>澄<rt>す</rt></ruby>ます", False),
             ("long", WRAPPED_HERO_RUBY, True),
         ):
             _html = (
@@ -709,35 +706,35 @@ def main():
                 check(f"long-hero stacking ({_label}): no horizontal overflow",
                       not _r.get("hOverflow", True))
 
-    # ---- Hero furigana annotation (grouped reading overlay) ----
-    # Regression history: per-kanji annotation segments (住[じゅう]所[しょ])
-    # centered as separate absolute strings overhang their kanji and the
-    # ink of adjacent segments collides (じゅう|しょ over 住|所). Pure CSS
-    # cannot pair per-kanji brackets correctly; the grouped reading lives
-    # in the `reading` field, so the hero renders ONE centered span
-    # (.hero-reading) and suppresses per-char rt — uniform size, no
-    # overlap, no touch across engines (report against v1.8.63/v1.8.64).
+    # ---- Hero furigana annotation (native in-flow ruby on furigana field) ----
+    # Regression history: hero rendered each per-kanji annotation as an
+    # absolute centered string (report v1.8.63-65); a reading wider than its
+    # base overhangs and adjacent strings collide (じゅう|しょ over 住|所).
+    # Fix: render the furigana field with NATIVE in-flow ruby so the browser
+    # pairs each reading to its kanji, then override the global absolute-rt
+    # rule to static for the hero only. Reserve headroom (padding-top +
+    # line-height) already absorbs the in-flow rt height.
     back_t = open(os.path.join(ROOT, "Card 1 - Back.template.anki"), encoding="utf-8").read()
     m_hero = re.search(
-        r'<span class="hero-reading">\{\{reading\}\}</span>', back_t
+        r'\{\{edit:furigana:furigana\}\}', back_t
     )
-    check("hero annotation renders the grouped reading (single span)", m_hero is not None)
-    check(
-        "hero per-char ruby rt suppressed (reading covers it)",
-        re.search(r"\.word-display ruby rt\s*\{[^}]*display:\s*none", css_early) is not None,
+    check("hero renders the furigana field (per-kanji ruby)", m_hero is not None)
+    m_reading = re.search(
+        r'\{\{reading\}\}', back_t
     )
+    check("hero no longer renders the flat reading field", m_reading is None)
     check(
-        "hero annotation is one absolutely centered annotation in reserved headroom",
-        re.search(
-            r"\.hero-reading\s*\{[^}]*position:\s*absolute[^}]*transform:\s*translateX\(-50%\)""",
-            css_early.replace("\n", " "),
-        ) is not None
-        and re.search(r"\.hero-reading\s*\{[^}]*font-size:\s*0\.55em", css_early.replace("\n", " ")) is not None,
+        "hero rt uses native in-flow ruby (position: static)",
+        re.search(r'\.word-display ruby rt\s*\{[^}]*position:\s*static', css_early.replace("\n", " ")) is not None,
     )
     check(
-        "hero annotation does not inherit the word letter-spacing (+ halt smalls)",
-        re.search(r'\.hero-reading\s*\{[^}]*letter-spacing:\s*normal', css_early.replace("\n", " ")) is not None
+        "hero rt does not inherit word letter-spacing (+ halt smalls)",
+        re.search(r'\.word-display ruby rt\s*\{[^}]*letter-spacing:\s*normal', css_early.replace("\n", " ")) is not None
         and re.search(r'font-feature-settings:[^;]*"halt" 1', css_early) is not None,
+    )
+    check(
+        "hero-scoped: global ruby rt stays absolute for zero-reflow hover elsewhere",
+        re.search(r'^ruby rt\s*\{[^}]*position:\s*absolute', css_early, re.M) is not None,
     )
     check(
         "no JS furigana fit controller (CSS-only by design)",

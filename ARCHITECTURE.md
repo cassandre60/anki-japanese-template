@@ -99,8 +99,8 @@ card-container
  ├── .hero-header (3-col grid: left meta | centered word | right meta;
  │    │  stacked word-over-sides on phones)
  │    ├── .hero-side-left (freq visualizer + 言葉 audio)
- │    ├── .hero-word-wrap > .word-display (target + one grouped
-  │    │    reading annotation, .hero-reading — hero element)
+ │    ├── .hero-word-wrap > .word-display (target + per-kanji furigana —
+  │    │    native in-flow ruby, hero element)
  │    └── .hero-side-right (.pitch-quiet + 文 audio)
  ├── definition-box.primary-definition (compacted §6b, 3-line §6c)
  ├── .context-grid (full-width sentence/context surface)

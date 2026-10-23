@@ -122,12 +122,12 @@ mechanically verified*. Code implements; tests enforce.
 ## CSS invariants
 
 - Zero-reflow furigana: absolute `ruby rt`, hidden until
+- Zero-reflow furigana: absolute `ruby rt`, hidden until
   `:hover`/`:active`/`:focus`; `F` mode pins all rt visible with no
-  reflow (same geometry). Hero exception: one grouped `.hero-reading`
-  annotation (the `reading` field) centered above the whole word —
-  per-kanji rt segments cannot pair in CSS and collide across ruby
-  engines; per-char hero rt is suppressed.
-- Content-driven card height (no `100vh`/`100dvh` fill); `container-type:
+  reflow (same geometry). Hero uses native in-flow ruby for per-kanji
+  furigana (the `furigana` field); reserved --furigana-headroom absorbs
+  the annotation height, so nothing reflows.
+
   inline-size` present; the retained context-grid compatibility rules keep
   their media-query fallback.
 - Compactor hide rules all scoped to `.primary-definition`; the full

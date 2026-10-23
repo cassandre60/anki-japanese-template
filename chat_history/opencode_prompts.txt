@@ -2532,3 +2532,5 @@ this is supposed to be a trivial task (maybe one css line), i don't know why you
 it now looks weird as if both do not have the same size, also it affected all furigana in page not just expression, this should be a trivial task, no JS, nothing complicated, i don't know why you can't do it
 
 [Image: hero furigana じゅう | しょ colliding] still touches, how hard can this be wtf, was working a few versions ago
+
+[Image: hero furigana いた | つ over 痛め付ける colliding] it still bugged, you should use the furigana field not the reading feild , for ex here 痛[いた]め 付[つ]ける not いためつける

@@ -4,7 +4,7 @@
  * (Tokyo Night Dark / Aki Paper Light)
  *
  * Source & documentation: https://github.com/cassandre60/anki-japanese-template
- * Version: v1.8.65 — auto-bumped by finish.sh; matches the GitHub release tag
+ * Version: v1.8.66 — auto-bumped by finish.sh; matches the GitHub release tag
  *
  * Front = pure retrieval surface (sentence / word / audio only).
  * Back = strong hierarchy: target → reading → meaning → context →
@@ -564,7 +564,6 @@
    annotation overlaps the line above — e.g. long grouped readings over
    a 2-line Expression. em-based => scales with font size everywhere. */
 .word-display {
-  position: relative;   /* anchors the single .hero-reading annotation */
   font-family: var(--font-japanese-serif);
   /* Hero target: unmistakably dominant, commanding, and present */
   font-size: clamp(3.0rem, 5.2vw + 1.2rem, 5.2rem);
@@ -579,31 +578,23 @@
   overflow-wrap: anywhere;
 }
 
-/* Furigana on Back Card: the hero uses ONE grouped annotation — the
-   whole `reading` field centered above the whole word (book typography:
-   じゅうしょ above 住所). Per-kanji ruby segments (the furigana field's
-   住[じゅう]所[しょ] markup) cannot pair correctly in CSS — two adjacent
-   centered strings overhang and their ink collides (report v1.8.63/v64:
-   "じ ゅ う し ょ" scattered/touching). One span = uniform size, no
-   overlap, works with the existing reserved headroom. No JS. */
+/* Furigana on Back Card: hero uses NATIVE IN-FLOW ruby layout so the
+   browser pairs each annotation to its kanji. The global §9 rule makes
+   rt absolute (for zero-reflow hover everywhere else), but the hero
+   needs in-flow rt because per-kanji absolute strings collide when a
+   reading is wider than its base (e.g. 住[じゅう]所[しょ] — report
+   v1.8.63-65). Overriding to static here is safe: the hero's reserved
+   --furigana-headroom padding absorbs the in-flow rt height. */
 .word-display ruby rt {
-  display: none;   /* hero never shows per-char ruby; reading covers it */
-}
-
-.hero-reading {
-  position: absolute;
-  /* bottom of the annotation sits 2px above the base glyphs: the
-     annotation (0.55em) plus this gap consume exactly the reserved
-     --furigana-headroom padding-top of .word-display. */
-  top: var(--block-pad-y, 0px);
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 0.55em;
-  line-height: 1;
-  white-space: nowrap;
-  letter-spacing: normal;          /* never inherit the word's 0.06em */
-  font-feature-settings: "halt" 1; /* small kana take compact advances */
-  color: var(--accent-color);
+  position: static;
+  transform: none;
+  left: auto;
+  bottom: auto;
+  visibility: visible;
+  opacity: 1;
+  margin-bottom: 0;
+  letter-spacing: normal;
+  font-feature-settings: "halt" 1;
 }
 
 /* Frequency badge: 5-star scale & progress track */
