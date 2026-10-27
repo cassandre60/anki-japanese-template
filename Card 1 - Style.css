@@ -4,7 +4,7 @@
  * (Tokyo Night Dark / Aki Paper Light)
  *
  * Source & documentation: https://github.com/cassandre60/anki-japanese-template
- * Version: v1.8.75 — auto-bumped by finish.sh; matches the GitHub release tag
+ * Version: v1.8.76 — auto-bumped by finish.sh; matches the GitHub release tag
  *
  * Front = pure retrieval surface (sentence / word / audio only).
  * Back = strong hierarchy: target → reading → meaning → context →
@@ -1152,13 +1152,13 @@
 /* ==============================================================================
     8. SENTENCE & TRANSLATION - Fluid Typography
     ============================================================================== */
-/* Type scale is deliberately unchanged for now (size is a separate
-   decision). The furigana itself follows the older templates: native
-   ruby at the browser's default 50% rt, normal line-height, no custom
-   compact annotation. */
+/* Desktop scale bumped at the user's request (v1.8.76): ~+11% at 1440px
+   and up (cap-bound), ~+6% mid-range. The furigana itself follows the
+   older templates: native ruby at the browser's default 50% rt, normal
+   line-height, no custom compact annotation. */
 .sentence-japanese {
   font-family: var(--font-japanese-serif);
-  font-size: clamp(1.2rem, 1.5vw + 0.6rem, 1.85rem);
+  font-size: clamp(1.25rem, 1.65vw + 0.6rem, 2.05rem);
   line-height: 1.5;
   padding-top: 0;
   margin-bottom: clamp(8px, 1.5vmin, 14px);
@@ -1601,14 +1601,17 @@ ruby:focus-within rt {
 
   .sentence-display,
   .front-word-display {
-    font-size: clamp(1.1rem, 3.8vmin + 0.5rem, 1.85rem);
+    font-size: clamp(1.15rem, 3.9vmin + 0.55rem, 2rem);
     padding: 4px 6px;
   }
   .sentence-japanese {
-    font-size: clamp(1.1rem, 3.5vmin + 0.5rem, 1.85rem);
+    font-size: clamp(1.15rem, 3.9vmin + 0.55rem, 2rem);
   }
   .word-display {
-    font-size: clamp(1.9rem, 4.5vmin + 1rem, 2.7rem);
+    /* Mobile hierarchy fix (v1.8.76): the Expression must dominate the
+       sentence like on desktop (~1.9x at 360-500px widths; the old
+       4.5vmin slope made it look like a second sentence at ~1.54x). */
+    font-size: clamp(2.3rem, 7.4vmin + 1rem, 3.3rem);
   }
 
   /* Narrow phones: word on its own centered row, the two sides share

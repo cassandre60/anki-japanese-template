@@ -107,7 +107,7 @@ card-container
  │    `.sentence-japanese` uses native ruby with browser-default 0.5em rt
  │    + "palt" small-kana metrics (card accent colour) and distributes
  │    grouped readings per base character with start-aligned `rt`; its
- │    type scale is unchanged for now)
+ │    type scale is bumped ~+11% (desktop cap 2.05rem, mobile 3.9vmin)
  ├── .more-section (hidden) + .more-toggle "More ▾"
  │    └── translation (click/T) · context · kanji notes · notes · source
  │        (.source-footer) · full extended definition (.extended-full —

@@ -141,8 +141,15 @@ mechanically verified*. Code implements; tests enforce.
   the old-template size. Start alignment is mandatory:
   with inherited `text-align: center`, Chromium centres the annotation
   run over the compound while the ruby slots still measure per kanji, so
-  only the painted kana reveal the bug. The overall sentence type scale
-  is unchanged for now (size is a separate decision).
+  only the painted kana reveal the bug.
+  Sentence type scale (v1.8.76): desktop bumped ~+11% at 1440+ and ~+6%
+  mid-range to `clamp(1.25rem, 1.65vw + 0.6rem, 2.05rem)`, mobile bumped
+  to `clamp(1.15rem, 3.9vmin + 0.55rem, 2rem)`; the mobile
+  `.word-display` clamp was re-sloped (`7.4vmin + 1rem`, bounded
+  `2.3rem-3.3rem`) so the desktop design hierarchy — Expression clearly
+  dominating the sentence — holds on phones (~1.9x at 360-500px
+  widths; the old 4.5vmin slope left the word at ~1.54x, looking like a
+  second sentence). The desktop `.word-display` clamp is untouched.
   Zero-reflow still holds for reveal because the hidden rt keeps its
   layout box.
 

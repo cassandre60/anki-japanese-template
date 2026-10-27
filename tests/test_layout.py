@@ -700,6 +700,13 @@ def main():
               mob["wrapperH"] < mob["viewportH"],
               f"wrapper={mob['wrapperH']:.0f} viewport={mob['viewportH']}")
         check("mobile back: sentence font stays >= 1rem", mob.get("sentFont", 1) >= 16)
+        # Mobile hierarchy fix (v1.8.76): the Expression must dominate the
+        # sentence like on desktop; before this the flat slopes left it at
+        # ~1.54x, reading like a slightly bigger sentence instead of the
+        # headline.
+        check("mobile back: expression dominates sentence (>= 1.7x)",
+              mob.get("wordFont", 0) >= 1.7 * mob.get("sentFont", 999),
+              f"word={mob.get('wordFont')} sent={mob.get('sentFont')}")
         check("mobile back: shortcut hints visible (clickable on touch)",
               mob.get("hintsDisplay", "none") != "none",
               f"display={mob.get('hintsDisplay')}")

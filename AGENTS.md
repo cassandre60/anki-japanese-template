@@ -92,7 +92,8 @@ Archive every new user prompt to `chat_history/opencode_prompts.txt`
 
 Zero-reflow reveal (hidden rt, hover/tap, `F`; hero absolute ruby;
 sentence native ruby at browser-default `0.5em` rt + `"palt"` small-kana
-metrics (`rt text-align: start`, sentence type scale unchanged for now)
+metrics (`rt text-align: start`; sentence clamp bumped ~+11% desktop and
+mobile, mobile expression/sentence hierarchy restored ~1.9x,
 per-kanji distribution) ·
 native-only
 circular audio (`文`/`言葉`, sibling replay link, debounce, playback
