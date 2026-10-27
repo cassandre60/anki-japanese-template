@@ -126,19 +126,21 @@ mechanically verified*. Code implements; tests enforce.
   `F` mode without shifting geometry. The hero uses absolute `ruby rt`
   centred over each `rb` (the per-kanji `furigana` field). The sentence
   follows the older templates' annotation look: native ruby at the
-  compact `0.33em` rt, normal line-height, and the card accent colour
-  from the global `ruby rt` rule, with `rt { text-align: start }` so
-  grouped readings like 除菌[でる] distribute over their base characters
-  instead of centring as one run at the compound boundary. The compact
-  size is mandatory (as of v1.8.73): at the 50% browser default a
-  reading wider than its kanji run (じゅうしょ over 住所) widens the base
-  module and Chromium spreads the kanji apart ("住 所"). Start
-  alignment is mandatory: with inherited `text-align: center`, Chromium
-  centres the annotation run over the compound while the ruby slots
-  still measure per kanji, so only the painted kana reveal the bug. The
-  overall sentence type scale is unchanged for now (size is a separate
-  decision). Long grouped readings may widen their base (e.g.
-  しょうしゅう over 消臭), exactly as they did in the older templates.
+  readable `0.45em` rt with `font-feature-settings: "palt" 1`, normal
+  line-height, and the card accent colour from the global `ruby rt`
+  rule, with `rt { text-align: start }` so grouped readings like
+  除菌[でる] distribute over their base characters instead of centring
+  as one run at the compound boundary. Both rt properties are mandatory
+  (as of v1.8.74, measured): at the 50% browser default a reading wider
+  than its kanji run (じゅうしょ over 住所) widens the base module and
+  Chromium spreads the kanji apart ("住 所"); plain 0.33em avoids that
+  but is barely legible. `palt` renders small kana at proportional
+  (~half) advance, keeping 6-kana readings like にゅうりょく within ~3px
+  of their base width at a legible size. Start alignment is mandatory:
+  with inherited `text-align: center`, Chromium centres the annotation
+  run over the compound while the ruby slots still measure per kanji, so
+  only the painted kana reveal the bug. The overall sentence type scale
+  is unchanged for now (size is a separate decision).
   Zero-reflow still holds for reveal because the hidden rt keeps its
   layout box.
 

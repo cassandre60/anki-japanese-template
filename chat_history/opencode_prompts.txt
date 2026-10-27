@@ -2569,3 +2569,7 @@ also explain why the last solution worked vs the million bad attempts you did
 
 you broke audio now this is getting redilcious
 also now 住所 furigna is also borken
+
+---
+
+now sound works but furigana barely visble, why can't you fix something without breaking soethignwtf

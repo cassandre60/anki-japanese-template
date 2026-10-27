@@ -4,7 +4,7 @@
  * (Tokyo Night Dark / Aki Paper Light)
  *
  * Source & documentation: https://github.com/cassandre60/anki-japanese-template
- * Version: v1.8.73 — auto-bumped by finish.sh; matches the GitHub release tag
+ * Version: v1.8.74 — auto-bumped by finish.sh; matches the GitHub release tag
  *
  * Front = pure retrieval surface (sentence / word / audio only).
  * Back = strong hierarchy: target → reading → meaning → context →
@@ -1285,16 +1285,17 @@ ruby rt {
   margin-bottom: 2px;
 }
 
-/* Sentence context follows the older templates' native ruby: compact
-   0.33em rt, normal line-height, no absolute positioning, no custom
-   display rules beyond resetting this card's global absolute ruby. The
-   only additional line is text-align: start, which keeps a compound
-   field like 除菌[でる] from centring both kana as one run at the
-   boundary; with it, で sits over 除 and る over 菌. The compact size
-   keeps every reading inside its base's own width, so grouped readings
-   like じゅうしょ over 住所 or にゅうりょく over 入力 never widen the
-   base module or spread the kanji apart (the 50% browser default does
-   exactly that once the reading exceeds the kanji run). */
+/* Sentence context follows the older templates' native ruby: normal
+   line-height, no absolute positioning, no custom display rules beyond
+   resetting this card's global absolute ruby. The only additional lines
+   are rt-level: text-align: start keeps a compound field like
+   除菌[でる] from centring both kana as one run at the boundary (で
+   sits over 除, る over 菌); the 0.45em size is the readable floor, and
+   "palt" renders small kana at proportional — roughly half — advance so
+   grouped readings like じゅうしょ over 住所 or にゅうりょく over 入力
+   stay inside the base's own width. Without palt a reading outgrows its
+   kanji run and Chromium widens the base module, splitting the kanji
+   apart ("住 所"); at 0.33em the readings fit but are barely legible. */
 .sentence-japanese ruby {
   display: ruby;
   ruby-align: space-around;
@@ -1309,7 +1310,8 @@ ruby rt {
   transform: none;
   bottom: auto;
   text-align: start;
-  font-size: 0.33em;
+  font-size: 0.45em;
+  font-feature-settings: "palt" 1;
   line-height: normal;
   margin-bottom: 0;
   /* Colour stays the card accent from the global ruby rt rule. */

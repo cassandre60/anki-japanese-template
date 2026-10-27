@@ -404,8 +404,8 @@ WRAPPED_HERO_RUBY = (
 
 # Real card data: the sentence furigana grouped two compounds,
 # 除菌[じょきん] 消臭[しょうしゅう]. The second reading is six kana over
-# two kanji; at the compact 0.33em size it needs ~2em against a 2em base,
-# so it fits without widening the base — at the 50% browser default it
+# two kanji; at 0.45em with "palt" small-kana metrics it needs ~2.1em
+# against a 2em base (fits, ~3px margin) — at the 50% browser default it
 # would need ~3em and spread both kanji apart (root cause of the
 # v1.8.72 住所[じゅうしょ] regression).
 SENTENCE_LONG_FURIGANA = (
@@ -771,9 +771,10 @@ def main():
     # ---- Sentence furigana: long compound readings must not collide ----
     # 除菌[じょきん]消臭[しょうしゅう] at the hero's 0.55em scale made the
     # 6-kana reading start above 菌 and overlap じょきん. The sentence now
-    # uses native ruby + ruby-align: space-around at 0.33em; each reading
-    # is distributed over its base and the 6-kana compound fits inside its
-    # two-kanji base without colliding.
+    # uses native ruby + ruby-align: space-around at 0.45em with "palt"
+    # small-kana metrics; each reading is distributed over its base and
+    # the 6-kana compound fits inside its two-kanji base without
+    # colliding.
     sent_html = (
         "<!doctype html><html><head><meta charset=\"utf-8\">"
         "<style>__CSS__</style></head><body>"
@@ -791,23 +792,25 @@ def main():
         check("sentence furigana: adjacent rt never overlap",
               sr.get("found") and sr.get("minGap", -999) >= 0,
               f"minGap={sr.get('minGap')}px")
-        check("sentence furigana: compact 0.33em rt size",
-              sr.get("found") and 0.30 <= sr.get("ratio", 9) <= 0.36,
+        check("sentence furigana: readable 0.45em rt size",
+              sr.get("found") and 0.41 <= sr.get("ratio", 9) <= 0.49,
               f"ratio={sr.get('ratio')}")
 
-    # ---- Sentence furigana: native ruby at compact 0.33em (v1.8.73) ----
-    # The old template used native ruby with the browser's default rt
-    # handling; the earlier 0.5em attempt widened base modules whenever a
-    # grouped reading outgrew its kanji (住所[じゅうしょ] => "住 所",
-    # かしょ => "か し ょ"). The compact 0.33em keeps every reading inside
-    # its base, native space-around keeps kana per-kanji, and the card
+    # ---- Sentence furigana: native ruby at readable 0.45em + palt (v1.8.74) ----
+    # The old template used native ruby with the browser's default 50% rt;
+    # that widened base modules whenever a grouped reading outgrew its
+    # kanji (住所[じゅうしょ] => "住 所", かしょ => "か し ょ"). Plain
+    # 0.33em kept every reading inside its base but was barely legible.
+    # The measured fix: 0.45em + font-feature-settings "palt" so small kana
+    # render at roughly half advance — readings fit their base at a
+    # readable size, space-around keeps kana per-kanji, and the card
     # accent colour comes from the global `ruby rt` rule. Only
     # text-align: start is added so a compound field distributes its kana
     # per kanji instead of centring the run at the boundary.
     one_line = css_early.replace("\n", " ")
     check(
-        "sentence furigana: rt compact size and start alignment",
-        re.search(r"\.sentence-japanese rt\s*\{[^}]*display:\s*ruby-text[^}]*position:\s*static[^}]*text-align:\s*start[^}]*font-size:\s*0\.33em", one_line) is not None
+        "sentence furigana: rt readable size, palt, and start alignment",
+        re.search(r"\.sentence-japanese rt\s*\{[^}]*display:\s*ruby-text[^}]*position:\s*static[^}]*text-align:\s*start[^}]*font-size:\s*0\.45em[^}]*font-feature-settings:\s*[\"']palt[\"'](?:\s*1)?", one_line) is not None
         and re.search(r"\.sentence-japanese rt\s*\{[^}]*\bcolor\s*:", one_line) is None,
     )
     check(
