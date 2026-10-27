@@ -2540,3 +2540,7 @@ it now looks weird as if both do not have the same size, also it affected all fu
 ---
 
 [Image: sentence furigana over 除菌消臭] look how the furigna above 除菌じょきん消臭しょうしゅうis rendred
+
+---
+
+i added a two kana to test the 除菌 display and still looks bad because it is not centered above the kanji , i said fix it

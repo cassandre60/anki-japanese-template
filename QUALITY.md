@@ -121,12 +121,16 @@ mechanically verified*. Code implements; tests enforce.
 
 ## CSS invariants
 
-- Zero-reflow furigana: absolute `ruby rt`, hidden until
-- Zero-reflow furigana: absolute `ruby rt`, hidden until
-  `:hover`/`:active`/`:focus`; `F` mode pins all rt visible with no
-  reflow (same geometry). Hero uses native in-flow ruby for per-kanji
-  furigana (the `furigana` field); reserved --furigana-headroom absorbs
-  the annotation height, so nothing reflows.
+- Zero-reflow reveal: `ruby rt` is hidden with `visibility:hidden` (not
+  `display:none`), shown on `:hover`/`:active`/`:focus`, and pinned by
+  `F` mode without shifting geometry. The hero uses absolute `ruby rt`
+  centred over each `rb` (the per-kanji `furigana` field). The sentence
+  uses native ruby + `ruby-align: space-around` (0.33em) to distribute
+  each grouped reading over its base characters; the reserved
+  `--furigana-headroom` absorbs the annotation height. Up to three kana
+  per kanji fit inside the base; a 4+ kana single-kanji reading
+  (e.g. 妹[いもうと]) may widen its base — the one documented sentence
+  edge that is not geometry-preserving.
 
   inline-size` present; the retained context-grid compatibility rules keep
   their media-query fallback.

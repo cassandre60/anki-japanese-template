@@ -100,10 +100,12 @@ card-container
  │    │  stacked word-over-sides on phones)
  │    ├── .hero-side-left (freq visualizer + 言葉 audio)
  │    ├── .hero-word-wrap > .word-display (target + per-kanji furigana —
-  │    │    native in-flow ruby, hero element)
+ │    │    absolute ruby centred over each rb, hero element)
  │    └── .hero-side-right (.pitch-quiet + 文 audio)
  ├── definition-box.primary-definition (compacted §6b, 3-line §6c)
- ├── .context-grid (full-width sentence/context surface)
+ ├── .context-grid (full-width sentence/context surface;
+ │    `.sentence-japanese` distributes grouped readings per base
+ │    character via native ruby + `ruby-align: space-around`)
  ├── .more-section (hidden) + .more-toggle "More ▾"
  │    └── translation (click/T) · context · kanji notes · notes · source
  │        (.source-footer) · full extended definition (.extended-full —
@@ -130,9 +132,10 @@ accent is reserved for the target and interactive states), §2 containers,
 centered word | right meta; stacked on narrow; freq/pitch/audio split sides), **§6b Definition Compactor**
 (first dictionary, ≤2 senses, no appendices, `.primary-definition`-scoped),
 §6c truncator (3-line cap + fade + chevron), §7 audio rings (playback indicator, not true progress),
-§8 sentence/translation + secondary blocks, §9 zero-reflow ruby +
-§9b full-card furigana mode, §10 media/lightbox, §11 footer + clickable
-shortcut hint bar (kept on mobile as ≥44px touch targets),
+§8 sentence/translation + secondary blocks, §9 zero-reflow reveal +
+ruby distribution, §9b full-card furigana mode, §10 media/lightbox,
+§11 footer + clickable shortcut hint bar (kept on mobile as ≥44px
+touch targets),
 §12 listening (inert until `.listening-mode`), §13 mobile,
 §14 deletable Fuji backdrop, §15 reduced motion (+ blur kill),
 §16 card entrance (single 0.15s settle, no stagger; killed by §15),

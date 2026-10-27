@@ -120,10 +120,12 @@ off-screen context to be solvable is a bad mine and should be re-mined.
   empty space on the front is acceptable — never filled with UI.
 - Fluid `clamp()` sizing phone → 4K; a compact scenic band spans the card top
   on desktop and phones, while sentence context remains full-width below it.
-- Zero-reflow furigana (hidden, hover/tap reveal, absolute ruby); `F`
-- Zero-reflow furigana (hidden, hover/tap reveal, absolute ruby); `F`
-  toggles full-card furigana on the back. Hero uses native in-flow ruby
-  for per-kanji furigana.
+- Zero-reflow reveal: hidden furigana is `visibility:hidden` (not
+  `display:none`), so hover/tap and `F` mode never shift geometry. The
+  hero uses absolute ruby centred over each `rb`; the sentence
+  distributes each grouped reading over its base characters with native
+  ruby + `ruby-align: space-around`. `F` toggles full-card furigana on
+  the back.
 
 - Native-only audio (delegate to Anki replay link, re-tap debounce,
   playback indicator pulse — never HTML5 `Audio`); `R` is Anki-owned

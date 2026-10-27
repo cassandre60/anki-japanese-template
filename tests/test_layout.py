@@ -183,8 +183,8 @@ PROBE = """(() => {
     r.wordFont = parseFloat(getComputedStyle(word).fontSize);
     if (rt) {
       const rtb = rt.getBoundingClientRect();
-      // hero uses native in-flow ruby: annotation is vertically inside
-      // the word's line box (cannot overlap the line above).
+      // hero uses absolute ruby: the reserved headroom keeps the
+      // annotation inside the word's line box (cannot overlap the line above).
       r.wordRtInside = rtb.top >= rb.top - 0.5 && rtb.bottom <= rb.bottom + 0.5;
     }
   }
@@ -435,6 +435,56 @@ SENTENCE_RT_PROBE = """(() => {
   const ratio = parseFloat(getComputedStyle(rt).fontSize) /
                 parseFloat(getComputedStyle(sent).fontSize);
   return {found: true, maxOff, minGap, ratio};
+})()"""
+
+# Report v1.8.69: the user added a two-kana reading (除菌[でる]) to test
+# per-kanji placement. The old group-centred absolute rt put で over the
+# 除/菌 boundary and る over the right half of 菌 — centred on the group,
+# not on each kanji. The sentence now uses native ruby with
+# ruby-align: space-around, which lays the annotation out in equal slots
+# across the rb. Two kana over two kanji => one centred over each kanji.
+SENTENCE_TWO_KANA_FURIGANA = (
+    '<div class="sentence-japanese" id="twokanafurigana">'
+    "<ruby><rb>除菌</rb><rt>でる</rt></ruby>"
+    "</div>"
+)
+
+SENTENCE_TWO_KANA_PROBE = """(() => {
+  const sent = document.querySelector('#twokanafurigana');
+  if (!sent) return {found: false};
+  const ruby = sent.querySelector('ruby');
+  const rb = ruby && ruby.querySelector('rb');
+  const rt = ruby && ruby.querySelector('rt');
+  if (!ruby || !rb || !rt) return {found: false};
+  const centres = (el) => {
+    const node = el.firstChild;
+    if (!node || node.nodeType !== 3) return [];
+    const out = [];
+    for (let i = 0; i < node.length; i++) {
+      const range = document.createRange();
+      range.setStart(node, i);
+      range.setEnd(node, i + 1);
+      const box = range.getBoundingClientRect();
+      out.push((box.left + box.right) / 2);
+    }
+    return out;
+  };
+  const rbC = centres(rb), rtC = centres(rt);
+  if (rbC.length < 2 || rtC.length < 2) {
+    return {found: false, rbChars: rbC.length, rtChars: rtC.length};
+  }
+  const rs = getComputedStyle(ruby), ts = getComputedStyle(rt);
+  return {
+    found: true,
+    display: rs.display,
+    align: rs.rubyAlign,
+    rtDisplay: ts.display,
+    rtPosition: ts.position,
+    rbSpacing: rbC[1] - rbC[0],
+    rtSpacing: rtC[1] - rtC[0],
+    offset0: rtC[0] - rbC[0],
+    offset1: rtC[1] - rbC[1],
+  };
 })()"""
 
 
@@ -700,8 +750,9 @@ def main():
     # ---- Sentence furigana: long compound readings must not collide ----
     # 除菌[じょきん]消臭[しょうしゅう] at the hero's 0.55em scale made the
     # 6-kana reading start above 菌 and overlap じょきん. The sentence now
-    # uses one uniform smaller size; each reading stays centered on its rb
-    # and adjacent readings never touch.
+    # uses native ruby + ruby-align: space-around at 0.33em; each reading
+    # is distributed over its base and the 6-kana compound fits inside its
+    # two-kanji base without colliding.
     sent_html = (
         "<!doctype html><html><head><meta charset=\"utf-8\">"
         "<style>__CSS__</style></head><body>"
@@ -722,6 +773,45 @@ def main():
         check("sentence furigana: uniform size fits long readings (<=0.4em)",
               sr.get("found") and sr.get("ratio", 9) <= 0.4,
               f"ratio={sr.get('ratio')}")
+
+    # ---- Sentence furigana: per-kanji distribution (report v1.8.69) ----
+    # Native ruby + ruby-align: space-around is the CSS-only mechanism that
+    # puts each reading slot over the matching base character. Static gate
+    # first (the old absolute rt never had these declarations), then a real
+    # browser probe: with 除菌[でる], the two kana must be spaced like the
+    # two kanji and share the same measurement offset.
+    one_line = css_early.replace("\n", " ")
+    check(
+        "sentence furigana: native ruby with space-around distribution",
+        re.search(r"\.sentence-japanese ruby\s*\{[^}]*display:\s*ruby;[^}]*ruby-align:\s*space-around", one_line) is not None
+        and re.search(r"\.sentence-japanese rb\s*\{\s*display:\s*ruby-base", one_line) is not None
+        and re.search(r"\.sentence-japanese rt\s*\{[^}]*display:\s*ruby-text[^}]*position:\s*static", one_line) is not None,
+    )
+    two_html = (
+        "<!doctype html><html><head><meta charset=\"utf-8\">"
+        "<style>__CSS__</style></head><body>"
+        "<div class=\"card back-card\"><div class=\"card-wrapper back-card furigana-mode\">"
+        "<div class=\"card-container\">" + SENTENCE_TWO_KANA_FURIGANA + "</div></div></div>"
+        "<script>document.title = JSON.stringify(" + SENTENCE_TWO_KANA_PROBE + ");</script>"
+        "</body></html>"
+    )
+    tk = render_overlap(two_html.replace("__CSS__", css), 1440, 900)
+    check("sentence furigana (2 kana): per-kanji probe returned",
+          tk is not None and tk.get("found", False))
+    if tk:
+        check("sentence furigana (2 kana): native ruby distribution active",
+              tk.get("found") and tk.get("display") == "ruby"
+              and tk.get("rtDisplay") == "ruby-text"
+              and tk.get("rtPosition") == "static"
+              and tk.get("align") == "space-around",
+              f"display={tk.get('display')} rt={tk.get('rtDisplay')} "
+              f"pos={tk.get('rtPosition')} align={tk.get('align')}")
+        check("sentence furigana (2 kana): kana spacing follows kanji spacing",
+              tk.get("found") and abs(tk.get("rtSpacing", 0) - tk.get("rbSpacing", 999)) <= 1.5,
+              f"rtSpacing={tk.get('rtSpacing')} rbSpacing={tk.get('rbSpacing')}")
+        check("sentence furigana (2 kana): each kana centred over its kanji",
+              tk.get("found") and abs(tk.get("offset0", 999) - tk.get("offset1", -999)) <= 1.5,
+              f"offset0={tk.get('offset0')} offset1={tk.get('offset1')}")
     # ---- Long-hero stacking (real initHeroStacking from the back template)
     # Short heroes keep the single row with sides hugging the word; long or
     # wide heroes stack sides below, inside the card, word still centered.
