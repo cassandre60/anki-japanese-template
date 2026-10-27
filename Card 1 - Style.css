@@ -4,7 +4,7 @@
  * (Tokyo Night Dark / Aki Paper Light)
  *
  * Source & documentation: https://github.com/cassandre60/anki-japanese-template
- * Version: v1.8.69 — auto-bumped by finish.sh; matches the GitHub release tag
+ * Version: v1.8.70 — auto-bumped by finish.sh; matches the GitHub release tag
  *
  * Front = pure retrieval surface (sentence / word / audio only).
  * Back = strong hierarchy: target → reading → meaning → context →
@@ -1293,11 +1293,16 @@ ruby rt {
    除菌[でる] => で over 除 / る over 菌; じょきん => two kana per kanji;
    しょうしゅう => three per kanji. Native ruby + ruby-align:
    space-around does that in pure CSS (no JS): the annotation is laid
-   out in equal slots across the rb. 0.33em keeps up to three kana
-   inside one kanji (3 × 0.33em = 0.99em), so the common compounds never
-   expand the base; a four-plus-kana reading over a single kanji is the
-   one group that can still widen its base. The hero keeps its absolute
-   0.55em display scale. */
+   out in equal slots across the rb. The universal `text-align: center`
+   above also reaches rt, and Chromium then centres the annotation *run*
+   inside the ruby instead of distributing the kana over the slots — the
+   slots still measure correctly, so only the painted kana reveal it.
+   rt must stay start-aligned for space-around to distribute each kana.
+   0.33em keeps up to three kana inside one kanji
+   (3 × 0.33em = 0.99em), so the common compounds never expand the base;
+   a four-plus-kana reading over a single kanji is the one group that can
+   still widen its base. The hero keeps its absolute 0.55em display
+   scale. */
 .sentence-japanese ruby {
   display: ruby;
   ruby-align: space-around;
@@ -1315,6 +1320,7 @@ ruby rt {
   left: auto;
   transform: none;
   bottom: auto;
+  text-align: start;
   font-size: 0.33em;
   line-height: 1;
   margin-bottom: 0;

@@ -437,12 +437,14 @@ SENTENCE_RT_PROBE = """(() => {
   return {found: true, maxOff, minGap, ratio};
 })()"""
 
-# Report v1.8.69: the user added a two-kana reading (除菌[でる]) to test
-# per-kanji placement. The old group-centred absolute rt put で over the
-# 除/菌 boundary and る over the right half of 菌 — centred on the group,
-# not on each kanji. The sentence now uses native ruby with
-# ruby-align: space-around, which lays the annotation out in equal slots
-# across the rb. Two kana over two kanji => one centred over each kanji.
+# Report v1.8.69/v1.8.70: the user added a two-kana reading (除菌[でる])
+# to test per-kanji placement. Native ruby + ruby-align: space-around
+# alone was not enough: the sentence's universal `text-align: center`
+# also reached rt, so Chromium centred the whole annotation run over the
+# compound (で on the 除/菌 boundary, る at the edge of 菌). The Range
+# boxes below still reported one slot per kanji, which is why the first
+# probe stayed green while the painted kana were wrong. rt must remain
+# start-aligned; then space-around places one kana over each kanji.
 SENTENCE_TWO_KANA_FURIGANA = (
     '<div class="sentence-japanese" id="twokanafurigana">'
     "<ruby><rb>除菌</rb><rt>でる</rt></ruby>"
@@ -480,6 +482,11 @@ SENTENCE_TWO_KANA_PROBE = """(() => {
     align: rs.rubyAlign,
     rtDisplay: ts.display,
     rtPosition: ts.position,
+    rtAlign: ts.textAlign,
+    // NOTE: Range boxes in Chromium report the ruby *slot* (one base
+    // character wide), not the painted kana. They are kept for the
+    // structural check; rtAlign is the property that decides whether the
+    // glyphs are distributed or centred as one run.
     rbSpacing: rbC[1] - rbC[0],
     rtSpacing: rtC[1] - rtC[0],
     offset0: rtC[0] - rbC[0],
@@ -774,18 +781,17 @@ def main():
               sr.get("found") and sr.get("ratio", 9) <= 0.4,
               f"ratio={sr.get('ratio')}")
 
-    # ---- Sentence furigana: per-kanji distribution (report v1.8.69) ----
-    # Native ruby + ruby-align: space-around is the CSS-only mechanism that
-    # puts each reading slot over the matching base character. Static gate
-    # first (the old absolute rt never had these declarations), then a real
-    # browser probe: with 除菌[でる], the two kana must be spaced like the
-    # two kanji and share the same measurement offset.
+    # ---- Sentence furigana: per-kanji distribution (v1.8.69/v1.8.70) ----
+    # Native ruby + ruby-align: space-around + rt text-align: start is the
+    # CSS-only mechanism that puts each kana over the matching base
+    # character. Static gate first (the old absolute rt never had these
+    # declarations), then a real browser probe for the computed switch.
     one_line = css_early.replace("\n", " ")
     check(
         "sentence furigana: native ruby with space-around distribution",
         re.search(r"\.sentence-japanese ruby\s*\{[^}]*display:\s*ruby;[^}]*ruby-align:\s*space-around", one_line) is not None
         and re.search(r"\.sentence-japanese rb\s*\{\s*display:\s*ruby-base", one_line) is not None
-        and re.search(r"\.sentence-japanese rt\s*\{[^}]*display:\s*ruby-text[^}]*position:\s*static", one_line) is not None,
+        and re.search(r"\.sentence-japanese rt\s*\{[^}]*display:\s*ruby-text[^}]*position:\s*static[^}]*text-align:\s*start", one_line) is not None,
     )
     two_html = (
         "<!doctype html><html><head><meta charset=\"utf-8\">"
@@ -806,12 +812,13 @@ def main():
               and tk.get("align") == "space-around",
               f"display={tk.get('display')} rt={tk.get('rtDisplay')} "
               f"pos={tk.get('rtPosition')} align={tk.get('align')}")
-        check("sentence furigana (2 kana): kana spacing follows kanji spacing",
-              tk.get("found") and abs(tk.get("rtSpacing", 0) - tk.get("rbSpacing", 999)) <= 1.5,
-              f"rtSpacing={tk.get('rtSpacing')} rbSpacing={tk.get('rbSpacing')}")
-        check("sentence furigana (2 kana): each kana centred over its kanji",
-              tk.get("found") and abs(tk.get("offset0", 999) - tk.get("offset1", -999)) <= 1.5,
-              f"offset0={tk.get('offset0')} offset1={tk.get('offset1')}")
+        # Regression guard for the actual visual bug: with rt inheriting
+        # `text-align: center`, space-around still reports one slot per
+        # kanji but Chromium paints で and る together at the compound
+        # boundary. Assert the distribution switch itself.
+        check("sentence furigana (2 kana): rt is start-aligned for distribution",
+              tk.get("found") and tk.get("rtAlign") == "start",
+              f"rtAlign={tk.get('rtAlign')}")
     # ---- Long-hero stacking (real initHeroStacking from the back template)
     # Short heroes keep the single row with sides hugging the word; long or
     # wide heroes stack sides below, inside the card, word still centered.

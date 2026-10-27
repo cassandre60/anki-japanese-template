@@ -124,8 +124,10 @@ off-screen context to be solvable is a bad mine and should be re-mined.
   `display:none`), so hover/tap and `F` mode never shift geometry. The
   hero uses absolute ruby centred over each `rb`; the sentence
   distributes each grouped reading over its base characters with native
-  ruby + `ruby-align: space-around`. `F` toggles full-card furigana on
-  the back.
+  ruby + `ruby-align: space-around` and start-aligned `rt` (with centred
+  `rt`, Chromium paints the kana as one block over the compound even
+  though the ruby slots measure per kanji). `F` toggles full-card
+  furigana on the back.
 
 - Native-only audio (delegate to Anki replay link, re-tap debounce,
   playback indicator pulse — never HTML5 `Audio`); `R` is Anki-owned

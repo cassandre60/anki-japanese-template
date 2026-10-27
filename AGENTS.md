@@ -91,7 +91,8 @@ Archive every new user prompt to `chat_history/opencode_prompts.txt`
 ### 4. Technical constraints (summaries; full rules in QUALITY.md)
 
 Zero-reflow reveal (hidden rt, hover/tap, `F`; hero absolute ruby;
-sentence native `ruby-align: space-around` per-kanji distribution) ·
+sentence native `ruby-align: space-around` + `rt text-align: start`
+per-kanji distribution) ·
 native-only
 circular audio (`文`/`言葉`, sibling replay link, debounce, playback
 indicator — not true progress) · `R` is Anki-owned (never a template

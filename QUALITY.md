@@ -125,12 +125,16 @@ mechanically verified*. Code implements; tests enforce.
   `display:none`), shown on `:hover`/`:active`/`:focus`, and pinned by
   `F` mode without shifting geometry. The hero uses absolute `ruby rt`
   centred over each `rb` (the per-kanji `furigana` field). The sentence
-  uses native ruby + `ruby-align: space-around` (0.33em) to distribute
-  each grouped reading over its base characters; the reserved
-  `--furigana-headroom` absorbs the annotation height. Up to three kana
-  per kanji fit inside the base; a 4+ kana single-kanji reading
-  (e.g. 妹[いもうと]) may widen its base — the one documented sentence
-  edge that is not geometry-preserving.
+  uses native ruby + `ruby-align: space-around` (0.33em) with
+  `rt { text-align: start }` to distribute each grouped reading over its
+  base characters; the reserved `--furigana-headroom` absorbs the
+  annotation height. Start alignment is mandatory: with inherited
+  `text-align: center`, Chromium centres the whole annotation run over
+  the compound while the ruby slots still measure per kanji, so only the
+  painted kana reveal the bug. Up to three kana per kanji fit inside the
+  base; a 4+ kana single-kanji reading (e.g. 妹[いもうと]) may widen its
+  base — the one documented sentence edge that is not
+  geometry-preserving.
 
   inline-size` present; the retained context-grid compatibility rules keep
   their media-query fallback.

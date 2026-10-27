@@ -105,7 +105,8 @@ card-container
  ├── definition-box.primary-definition (compacted §6b, 3-line §6c)
  ├── .context-grid (full-width sentence/context surface;
  │    `.sentence-japanese` distributes grouped readings per base
- │    character via native ruby + `ruby-align: space-around`)
+ │    character via native ruby + `ruby-align: space-around` and
+ │    start-aligned `rt`)
  ├── .more-section (hidden) + .more-toggle "More ▾"
  │    └── translation (click/T) · context · kanji notes · notes · source
  │        (.source-footer) · full extended definition (.extended-full —

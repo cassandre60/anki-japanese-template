@@ -2544,3 +2544,7 @@ it now looks weird as if both do not have the same size, also it affected all fu
 ---
 
 i added a two kana to test the 除菌 display and still looks bad because it is not centered above the kanji , i said fix it
+
+---
+
+liar, i say each kana should be abobe its repse tive kanji [Image: sentence furigana over 除菌 — で/る still grouped at the compound boundary]
