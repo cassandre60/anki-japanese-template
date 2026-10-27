@@ -2560,3 +2560,12 @@ forgot size for a bit, make it look the same first and worry about size later, s
 ---
 
 works but you fucked up the preivous colors
+
+---
+
+also explain why the last solution worked vs the million bad attempts you did
+
+---
+
+you broke audio now this is getting redilcious
+also now 住所 furigna is also borken

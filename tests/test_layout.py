@@ -404,8 +404,10 @@ WRAPPED_HERO_RUBY = (
 
 # Real card data: the sentence furigana grouped two compounds,
 # 除菌[じょきん] 消臭[しょうしゅう]. The second reading is six kana over
-# two kanji; at the older-template 50% size it needs ~3em against a 2em
-# base, so the base widens — the same behavior as the older templates.
+# two kanji; at the compact 0.33em size it needs ~2em against a 2em base,
+# so it fits without widening the base — at the 50% browser default it
+# would need ~3em and spread both kanji apart (root cause of the
+# v1.8.72 住所[じゅうしょ] regression).
 SENTENCE_LONG_FURIGANA = (
     '<div class="sentence-japanese" id="longfurigana">'
     "<ruby><rb>除菌</rb><rt>じょきん</rt></ruby>"
@@ -789,21 +791,23 @@ def main():
         check("sentence furigana: adjacent rt never overlap",
               sr.get("found") and sr.get("minGap", -999) >= 0,
               f"minGap={sr.get('minGap')}px")
-        check("sentence furigana: older-template 50% rt size",
-              sr.get("found") and 0.45 <= sr.get("ratio", 9) <= 0.55,
+        check("sentence furigana: compact 0.33em rt size",
+              sr.get("found") and 0.30 <= sr.get("ratio", 9) <= 0.36,
               f"ratio={sr.get('ratio')}")
 
-    # ---- Sentence furigana: older-template native ruby (v1.8.71) ----
-    # The old template used native ruby at the browser's default 50% rt,
-    # normal line-height, and the card accent colour from the global
-    # `ruby rt` rule. The overall sentence type scale is deliberately
-    # unchanged for now. Only text-align: start is added so a compound
-    # field distributes its kana per kanji instead of centring the run at
-    # the boundary.
+    # ---- Sentence furigana: native ruby at compact 0.33em (v1.8.73) ----
+    # The old template used native ruby with the browser's default rt
+    # handling; the earlier 0.5em attempt widened base modules whenever a
+    # grouped reading outgrew its kanji (住所[じゅうしょ] => "住 所",
+    # かしょ => "か し ょ"). The compact 0.33em keeps every reading inside
+    # its base, native space-around keeps kana per-kanji, and the card
+    # accent colour comes from the global `ruby rt` rule. Only
+    # text-align: start is added so a compound field distributes its kana
+    # per kanji instead of centring the run at the boundary.
     one_line = css_early.replace("\n", " ")
     check(
-        "sentence furigana: older-template native rt size and alignment",
-        re.search(r"\.sentence-japanese rt\s*\{[^}]*display:\s*ruby-text[^}]*position:\s*static[^}]*text-align:\s*start[^}]*font-size:\s*0\.5em", one_line) is not None
+        "sentence furigana: rt compact size and start alignment",
+        re.search(r"\.sentence-japanese rt\s*\{[^}]*display:\s*ruby-text[^}]*position:\s*static[^}]*text-align:\s*start[^}]*font-size:\s*0\.33em", one_line) is not None
         and re.search(r"\.sentence-japanese rt\s*\{[^}]*\bcolor\s*:", one_line) is None,
     )
     check(

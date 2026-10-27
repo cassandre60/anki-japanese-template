@@ -126,10 +126,13 @@ mechanically verified*. Code implements; tests enforce.
   `F` mode without shifting geometry. The hero uses absolute `ruby rt`
   centred over each `rb` (the per-kanji `furigana` field). The sentence
   follows the older templates' annotation look: native ruby at the
-  browser's default `50%` rt, normal line-height, and the card accent
-  colour from the global `ruby rt` rule, with `rt { text-align: start }` so
+  compact `0.33em` rt, normal line-height, and the card accent colour
+  from the global `ruby rt` rule, with `rt { text-align: start }` so
   grouped readings like 除菌[でる] distribute over their base characters
-  instead of centring as one run at the compound boundary. Start
+  instead of centring as one run at the compound boundary. The compact
+  size is mandatory (as of v1.8.73): at the 50% browser default a
+  reading wider than its kanji run (じゅうしょ over 住所) widens the base
+  module and Chromium spreads the kanji apart ("住 所"). Start
   alignment is mandatory: with inherited `text-align: center`, Chromium
   centres the annotation run over the compound while the ruby slots
   still measure per kanji, so only the painted kana reveal the bug. The
