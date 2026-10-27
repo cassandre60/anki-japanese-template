@@ -2573,3 +2573,7 @@ also now 住所 furigna is also borken
 ---
 
 now sound works but furigana barely visble, why can't you fix something without breaking soethignwtf
+
+---
+
+make furigna bigger and sync so i test

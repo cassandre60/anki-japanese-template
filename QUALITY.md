@@ -126,17 +126,19 @@ mechanically verified*. Code implements; tests enforce.
   `F` mode without shifting geometry. The hero uses absolute `ruby rt`
   centred over each `rb` (the per-kanji `furigana` field). The sentence
   follows the older templates' annotation look: native ruby at the
-  readable `0.45em` rt with `font-feature-settings: "palt" 1`, normal
-  line-height, and the card accent colour from the global `ruby rt`
-  rule, with `rt { text-align: start }` so grouped readings like
-  除菌[でる] distribute over their base characters instead of centring
-  as one run at the compound boundary. Both rt properties are mandatory
-  (as of v1.8.74, measured): at the 50% browser default a reading wider
+  browser-default `0.5em` rt with `font-feature-settings: "palt" 1`,
+  normal line-height, and the card accent colour from the global
+  `ruby rt` rule, with `rt { text-align: start }` so grouped readings
+  like 除菌[でる] distribute over their base characters instead of
+  centring as one run at the compound boundary. Both rt properties are
+  mandatory (as of v1.8.75, measured): without palt, a reading wider
   than its kanji run (じゅうしょ over 住所) widens the base module and
   Chromium spreads the kanji apart ("住 所"); plain 0.33em avoids that
   but is barely legible. `palt` renders small kana at proportional
-  (~half) advance, keeping 6-kana readings like にゅうりょく within ~3px
-  of their base width at a legible size. Start alignment is mandatory:
+  (~half) advance, which keeps 5-kana readings like じゅうしょ inside
+  their base and caps the 6-kana/2-kanji class (にゅうりょく) to a
+  ~10px split — the accepted residual trade for per-kanji placement at
+  the old-template size. Start alignment is mandatory:
   with inherited `text-align: center`, Chromium centres the annotation
   run over the compound while the ruby slots still measure per kanji, so
   only the painted kana reveal the bug. The overall sentence type scale

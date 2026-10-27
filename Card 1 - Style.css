@@ -4,7 +4,7 @@
  * (Tokyo Night Dark / Aki Paper Light)
  *
  * Source & documentation: https://github.com/cassandre60/anki-japanese-template
- * Version: v1.8.74 — auto-bumped by finish.sh; matches the GitHub release tag
+ * Version: v1.8.75 — auto-bumped by finish.sh; matches the GitHub release tag
  *
  * Front = pure retrieval surface (sentence / word / audio only).
  * Back = strong hierarchy: target → reading → meaning → context →
@@ -1290,12 +1290,15 @@ ruby rt {
    resetting this card's global absolute ruby. The only additional lines
    are rt-level: text-align: start keeps a compound field like
    除菌[でる] from centring both kana as one run at the boundary (で
-   sits over 除, る over 菌); the 0.45em size is the readable floor, and
-   "palt" renders small kana at proportional — roughly half — advance so
-   grouped readings like じゅうしょ over 住所 or にゅうりょく over 入力
-   stay inside the base's own width. Without palt a reading outgrows its
-   kanji run and Chromium widens the base module, splitting the kanji
-   apart ("住 所"); at 0.33em the readings fit but are barely legible. */
+   sits over 除, る over 菌); the 0.5em size is the old templates'
+   browser-default rt size, and "palt" renders small kana at
+   proportional — roughly half — advance so 5-kana grouped readings like
+   じゅうしょ over 住所 stay inside the base's own width. Without palt a
+   reading outgrows its kanji run and Chromium widens the base module,
+   splitting the kanji apart ("住 所"). The accepted residual trade at
+   this size: a 6-kana/2-kanji reading (にゅうりょく) still runs ~0.4em
+   over and splits its base by ~10px — roughly a third of what v1.8.72
+   showed. At 0.33em everything fits but is barely legible. */
 .sentence-japanese ruby {
   display: ruby;
   ruby-align: space-around;
@@ -1310,7 +1313,7 @@ ruby rt {
   transform: none;
   bottom: auto;
   text-align: start;
-  font-size: 0.45em;
+  font-size: 0.5em;
   font-feature-settings: "palt" 1;
   line-height: normal;
   margin-bottom: 0;

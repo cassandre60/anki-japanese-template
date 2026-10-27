@@ -91,7 +91,7 @@ Archive every new user prompt to `chat_history/opencode_prompts.txt`
 ### 4. Technical constraints (summaries; full rules in QUALITY.md)
 
 Zero-reflow reveal (hidden rt, hover/tap, `F`; hero absolute ruby;
-sentence native ruby at readable `0.45em` rt + `"palt"` small-kana
+sentence native ruby at browser-default `0.5em` rt + `"palt"` small-kana
 metrics (`rt text-align: start`, sentence type scale unchanged for now)
 per-kanji distribution) ·
 native-only

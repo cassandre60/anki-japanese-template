@@ -104,7 +104,7 @@ card-container
  │    └── .hero-side-right (.pitch-quiet + 文 audio)
  ├── definition-box.primary-definition (compacted §6b, 3-line §6c)
  ├── .context-grid (full-width sentence/context surface;
- │    `.sentence-japanese` uses native ruby with readable 0.45em rt
+ │    `.sentence-japanese` uses native ruby with browser-default 0.5em rt
  │    + "palt" small-kana metrics (card accent colour) and distributes
  │    grouped readings per base character with start-aligned `rt`; its
  │    type scale is unchanged for now)
