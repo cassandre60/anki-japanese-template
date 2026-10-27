@@ -2536,3 +2536,7 @@ it now looks weird as if both do not have the same size, also it affected all fu
 [Image: hero furigana いた | つ over 痛め付ける colliding] it still bugged, you should use the furigana field not the reading feild , for ex here 痛[いた]め 付[つ]ける not いためつける
 
 [Image: 痛め付ける hero furigana colliding — いた bleeding into め, ける misplaced] look how it shows, fix it
+
+---
+
+[Image: sentence furigana over 除菌消臭] look how the furigna above 除菌じょきん消臭しょうしゅうis rendred

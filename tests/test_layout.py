@@ -402,6 +402,41 @@ WRAPPED_HERO_RUBY = (
     "<ruby>針千本飲<rt>はりせんぼんの</rt></ruby>ます"
 )
 
+# Real card data (report v1.8.68): the sentence furigana grouped two
+# compounds, 除菌[じょきん] 消臭[しょうしゅう]. The second reading is six
+# kana over two kanji — ~1.7x its base at the 0.55em hero scale — so
+# absolute centering pushed it left over 菌 and merged it with じょきん.
+SENTENCE_LONG_FURIGANA = (
+    '<div class="sentence-japanese" id="longfurigana">'
+    "<ruby><rb>除菌</rb><rt>じょきん</rt></ruby>"
+    "<ruby><rb>消臭</rb><rt>しょうしゅう</rt></ruby>"
+    "　みんなに<ruby><rb>猿</rb><rt>さる</rt></ruby>のにおいが"
+    "<ruby><rb>移</rb><rt>うつ</rt></ruby>るといけない"
+    "</div>"
+)
+
+SENTENCE_RT_PROBE = """(() => {
+  const sent = document.querySelector('#longfurigana');
+  if (!sent) return {found: false};
+  const rubies = [...sent.querySelectorAll('ruby')];
+  let maxOff = 0, minGap = 1e9, prev = null;
+  for (const ruby of rubies) {
+    const rb = ruby.querySelector('rb'), rt = ruby.querySelector('rt');
+    if (!rb || !rt) continue;
+    const rg = document.createRange();
+    rg.selectNodeContents(rb);
+    const b = rg.getBoundingClientRect();
+    const t = rt.getBoundingClientRect();
+    maxOff = Math.max(maxOff, Math.abs((t.left + t.width / 2) - (b.left + b.width / 2)));
+    if (prev) minGap = Math.min(minGap, t.left - prev.right);
+    prev = t;
+  }
+  const rt = rubies[1].querySelector('rt');
+  const ratio = parseFloat(getComputedStyle(rt).fontSize) /
+                parseFloat(getComputedStyle(sent).fontSize);
+  return {found: true, maxOff, minGap, ratio};
+})()"""
+
 
 def _hex_lum(hexcode: str) -> float:
     hexcode = hexcode.lstrip("#")
@@ -661,6 +696,32 @@ def main():
         check("wrapped hero: second-line rt never overlaps the line above (<=1.5px)",
               hero.get("worstOverlap", 999) <= 1.5,
               f"worstOverlap={hero.get('worstOverlap')}px")
+
+    # ---- Sentence furigana: long compound readings must not collide ----
+    # 除菌[じょきん]消臭[しょうしゅう] at the hero's 0.55em scale made the
+    # 6-kana reading start above 菌 and overlap じょきん. The sentence now
+    # uses one uniform smaller size; each reading stays centered on its rb
+    # and adjacent readings never touch.
+    sent_html = (
+        "<!doctype html><html><head><meta charset=\"utf-8\">"
+        "<style>__CSS__</style></head><body>"
+        "<div class=\"card back-card\"><div class=\"card-wrapper back-card furigana-mode\">"
+        "<div class=\"card-container\">" + SENTENCE_LONG_FURIGANA + "</div></div></div>"
+        "<script>document.title = JSON.stringify(" + SENTENCE_RT_PROBE + ");</script>"
+        "</body></html>"
+    )
+    sr = render_overlap(sent_html.replace("__CSS__", css), 1440, 900)
+    check("sentence furigana: collision probe returned", sr is not None)
+    if sr:
+        check("sentence furigana: each rt centered over its rb (<=1px)",
+              sr.get("found") and sr.get("maxOff", 999) <= 1.0,
+              f"maxOff={sr.get('maxOff')}")
+        check("sentence furigana: adjacent rt never overlap",
+              sr.get("found") and sr.get("minGap", -999) >= 0,
+              f"minGap={sr.get('minGap')}px")
+        check("sentence furigana: uniform size fits long readings (<=0.4em)",
+              sr.get("found") and sr.get("ratio", 9) <= 0.4,
+              f"ratio={sr.get('ratio')}")
     # ---- Long-hero stacking (real initHeroStacking from the back template)
     # Short heroes keep the single row with sides hugging the word; long or
     # wide heroes stack sides below, inside the card, word still centered.
