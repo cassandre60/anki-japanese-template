@@ -2556,3 +2556,7 @@ I SAID LOOK AT MY OLD TEMPLATES AND DO WAHT I DID THERE REATRD STOP impovsiong s
 ---
 
 forgot size for a bit, make it look the same first and worry about size later, size is not the main issue
+
+---
+
+works but you fucked up the preivous colors

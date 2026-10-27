@@ -126,8 +126,8 @@ mechanically verified*. Code implements; tests enforce.
   `F` mode without shifting geometry. The hero uses absolute `ruby rt`
   centred over each `rb` (the per-kanji `furigana` field). The sentence
   follows the older templates' annotation look: native ruby at the
-  browser's default `50%` rt, normal line-height, and the sentence's own
-  text colour (not the accent), with `rt { text-align: start }` so
+  browser's default `50%` rt, normal line-height, and the card accent
+  colour from the global `ruby rt` rule, with `rt { text-align: start }` so
   grouped readings like 除菌[でる] distribute over their base characters
   instead of centring as one run at the compound boundary. Start
   alignment is mandatory: with inherited `text-align: center`, Chromium

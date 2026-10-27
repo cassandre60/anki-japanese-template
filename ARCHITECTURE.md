@@ -105,7 +105,7 @@ card-container
  ├── definition-box.primary-definition (compacted §6b, 3-line §6c)
  ├── .context-grid (full-width sentence/context surface;
  │    `.sentence-japanese` uses older-template native ruby (50% rt,
- │    sentence colour) and distributes grouped readings per base
+ │    card accent colour) and distributes grouped readings per base
  │    character with start-aligned `rt`; its type scale is unchanged
  │    for now)
  ├── .more-section (hidden) + .more-toggle "More ▾"

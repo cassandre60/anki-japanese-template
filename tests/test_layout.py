@@ -476,6 +476,16 @@ SENTENCE_TWO_KANA_PROBE = """(() => {
     return {found: false, rbChars: rbC.length, rtChars: rtC.length};
   }
   const rs = getComputedStyle(ruby), ts = getComputedStyle(rt);
+  // Resolve the card accent to an rgb() string for a direct comparison with
+  // the computed rt colour. The probe is absolute and hidden, so it cannot
+  // affect the ruby measurements.
+  const accentProbe = document.createElement('span');
+  accentProbe.style.cssText = 'position:absolute;visibility:hidden;color:var(--accent-color)';
+  // Resolve the accent inside the sentence's theme scope (the fixture uses
+  // the light card palette), not against the document root.
+  sent.appendChild(accentProbe);
+  const accentColor = getComputedStyle(accentProbe).color;
+  accentProbe.remove();
   return {
     found: true,
     display: rs.display,
@@ -483,6 +493,8 @@ SENTENCE_TWO_KANA_PROBE = """(() => {
     rtDisplay: ts.display,
     rtPosition: ts.position,
     rtAlign: ts.textAlign,
+    rtColor: ts.color,
+    accentColor: accentColor,
     // NOTE: Range boxes in Chromium report the ruby *slot* (one base
     // character wide), not the painted kana. They are kept for the
     // structural check; rtAlign is the property that decides whether the
@@ -783,15 +795,16 @@ def main():
 
     # ---- Sentence furigana: older-template native ruby (v1.8.71) ----
     # The old template used native ruby at the browser's default 50% rt,
-    # normal line-height and the sentence's own text colour. The overall
-    # sentence type scale is deliberately unchanged for now. Only
-    # text-align: start is added so a compound field distributes its kana
-    # per kanji instead of centring the run at the boundary.
+    # normal line-height, and the card accent colour from the global
+    # `ruby rt` rule. The overall sentence type scale is deliberately
+    # unchanged for now. Only text-align: start is added so a compound
+    # field distributes its kana per kanji instead of centring the run at
+    # the boundary.
     one_line = css_early.replace("\n", " ")
     check(
         "sentence furigana: older-template native rt size and alignment",
         re.search(r"\.sentence-japanese rt\s*\{[^}]*display:\s*ruby-text[^}]*position:\s*static[^}]*text-align:\s*start[^}]*font-size:\s*0\.5em", one_line) is not None
-        and re.search(r"\.sentence-japanese rt\s*\{[^}]*color:\s*inherit", one_line) is not None,
+        and re.search(r"\.sentence-japanese rt\s*\{[^}]*\bcolor\s*:", one_line) is None,
     )
     check(
         "sentence furigana: native ruby with space-around distribution",
@@ -824,6 +837,12 @@ def main():
         check("sentence furigana (2 kana): rt is start-aligned for distribution",
               tk.get("found") and tk.get("rtAlign") == "start",
               f"rtAlign={tk.get('rtAlign')}")
+        # The sentence rt must keep the global accent colour; inheriting the
+        # sentence text colour was a regression (v1.8.71) that made the
+        # furigana look washed out.
+        check("sentence furigana (2 kana): rt keeps the accent colour",
+              tk.get("found") and tk.get("rtColor") == tk.get("accentColor"),
+              f"rt={tk.get('rtColor')} accent={tk.get('accentColor')}")
     # ---- Long-hero stacking (real initHeroStacking from the back template)
     # Short heroes keep the single row with sides hugging the word; long or
     # wide heroes stack sides below, inside the card, word still centered.

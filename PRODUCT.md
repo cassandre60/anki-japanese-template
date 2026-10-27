@@ -124,8 +124,8 @@ off-screen context to be solvable is a bad mine and should be re-mined.
 - Zero-reflow reveal: hidden furigana is `visibility:hidden` (not
   `display:none`), so hover/tap and `F` mode never shift geometry. The
   hero uses absolute ruby centred over each `rb`; the sentence follows the
-  older templates' annotation look: native `50%` ruby text in the
-  sentence's own colour with start-aligned `rt`, so each grouped reading
+  older templates' annotation look: native `50%` ruby text in the card
+  accent colour with start-aligned `rt`, so each grouped reading
   sits over its base characters (with centred `rt`, Chromium paints the
   kana as one block over the compound even though the ruby slots measure
   per kanji). The sentence's overall type scale is unchanged for now.

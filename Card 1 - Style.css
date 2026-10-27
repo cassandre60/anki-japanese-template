@@ -4,7 +4,7 @@
  * (Tokyo Night Dark / Aki Paper Light)
  *
  * Source & documentation: https://github.com/cassandre60/anki-japanese-template
- * Version: v1.8.71 — auto-bumped by finish.sh; matches the GitHub release tag
+ * Version: v1.8.72 — auto-bumped by finish.sh; matches the GitHub release tag
  *
  * Front = pure retrieval surface (sentence / word / audio only).
  * Back = strong hierarchy: target → reading → meaning → context →
@@ -1309,7 +1309,7 @@ ruby rt {
   font-size: 0.5em;
   line-height: normal;
   margin-bottom: 0;
-  color: inherit;
+  /* Colour stays the card accent from the global ruby rt rule. */
 }
 
 /* Mouse Hover & Mobile Tap Active - 100% Shift-free */
