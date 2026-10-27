@@ -402,10 +402,10 @@ WRAPPED_HERO_RUBY = (
     "<ruby>針千本飲<rt>はりせんぼんの</rt></ruby>ます"
 )
 
-# Real card data (report v1.8.68): the sentence furigana grouped two
-# compounds, 除菌[じょきん] 消臭[しょうしゅう]. The second reading is six
-# kana over two kanji — ~1.7x its base at the 0.55em hero scale — so
-# absolute centering pushed it left over 菌 and merged it with じょきん.
+# Real card data: the sentence furigana grouped two compounds,
+# 除菌[じょきん] 消臭[しょうしゅう]. The second reading is six kana over
+# two kanji; at the older-template 50% size it needs ~3em against a 2em
+# base, so the base widens — the same behavior as the older templates.
 SENTENCE_LONG_FURIGANA = (
     '<div class="sentence-japanese" id="longfurigana">'
     "<ruby><rb>除菌</rb><rt>じょきん</rt></ruby>"
@@ -777,20 +777,25 @@ def main():
         check("sentence furigana: adjacent rt never overlap",
               sr.get("found") and sr.get("minGap", -999) >= 0,
               f"minGap={sr.get('minGap')}px")
-        check("sentence furigana: uniform size fits long readings (<=0.4em)",
-              sr.get("found") and sr.get("ratio", 9) <= 0.4,
+        check("sentence furigana: older-template 50% rt size",
+              sr.get("found") and 0.45 <= sr.get("ratio", 9) <= 0.55,
               f"ratio={sr.get('ratio')}")
 
-    # ---- Sentence furigana: per-kanji distribution (v1.8.69/v1.8.70) ----
-    # Native ruby + ruby-align: space-around + rt text-align: start is the
-    # CSS-only mechanism that puts each kana over the matching base
-    # character. Static gate first (the old absolute rt never had these
-    # declarations), then a real browser probe for the computed switch.
+    # ---- Sentence furigana: older-template native ruby (v1.8.71) ----
+    # The old template used native ruby at the browser's default 50% rt,
+    # normal line-height and the sentence's own text colour. The overall
+    # sentence type scale is deliberately unchanged for now. Only
+    # text-align: start is added so a compound field distributes its kana
+    # per kanji instead of centring the run at the boundary.
     one_line = css_early.replace("\n", " ")
+    check(
+        "sentence furigana: older-template native rt size and alignment",
+        re.search(r"\.sentence-japanese rt\s*\{[^}]*display:\s*ruby-text[^}]*position:\s*static[^}]*text-align:\s*start[^}]*font-size:\s*0\.5em", one_line) is not None
+        and re.search(r"\.sentence-japanese rt\s*\{[^}]*color:\s*inherit", one_line) is not None,
+    )
     check(
         "sentence furigana: native ruby with space-around distribution",
         re.search(r"\.sentence-japanese ruby\s*\{[^}]*display:\s*ruby;[^}]*ruby-align:\s*space-around", one_line) is not None
-        and re.search(r"\.sentence-japanese rb\s*\{\s*display:\s*ruby-base", one_line) is not None
         and re.search(r"\.sentence-japanese rt\s*\{[^}]*display:\s*ruby-text[^}]*position:\s*static[^}]*text-align:\s*start", one_line) is not None,
     )
     two_html = (

@@ -2548,3 +2548,11 @@ i added a two kana to test the 除菌 display and still looks bad because it is 
 ---
 
 liar, i say each kana should be abobe its repse tive kanji [Image: sentence furigana over 除菌 — で/る still grouped at the compound boundary]
+
+---
+
+I SAID LOOK AT MY OLD TEMPLATES AND DO WAHT I DID THERE REATRD STOP impovsiong solutions, its all bad and ugly, too msall etc
+
+---
+
+forgot size for a bit, make it look the same first and worry about size later, size is not the main issue

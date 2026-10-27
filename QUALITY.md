@@ -125,16 +125,19 @@ mechanically verified*. Code implements; tests enforce.
   `display:none`), shown on `:hover`/`:active`/`:focus`, and pinned by
   `F` mode without shifting geometry. The hero uses absolute `ruby rt`
   centred over each `rb` (the per-kanji `furigana` field). The sentence
-  uses native ruby + `ruby-align: space-around` (0.33em) with
-  `rt { text-align: start }` to distribute each grouped reading over its
-  base characters; the reserved `--furigana-headroom` absorbs the
-  annotation height. Start alignment is mandatory: with inherited
-  `text-align: center`, Chromium centres the whole annotation run over
-  the compound while the ruby slots still measure per kanji, so only the
-  painted kana reveal the bug. Up to three kana per kanji fit inside the
-  base; a 4+ kana single-kanji reading (e.g. 妹[いもうと]) may widen its
-  base — the one documented sentence edge that is not
-  geometry-preserving.
+  follows the older templates' annotation look: native ruby at the
+  browser's default `50%` rt, normal line-height, and the sentence's own
+  text colour (not the accent), with `rt { text-align: start }` so
+  grouped readings like 除菌[でる] distribute over their base characters
+  instead of centring as one run at the compound boundary. Start
+  alignment is mandatory: with inherited `text-align: center`, Chromium
+  centres the annotation run over the compound while the ruby slots
+  still measure per kanji, so only the painted kana reveal the bug. The
+  overall sentence type scale is unchanged for now (size is a separate
+  decision). Long grouped readings may widen their base (e.g.
+  しょうしゅう over 消臭), exactly as they did in the older templates.
+  Zero-reflow still holds for reveal because the hidden rt keeps its
+  layout box.
 
   inline-size` present; the retained context-grid compatibility rules keep
   their media-query fallback.

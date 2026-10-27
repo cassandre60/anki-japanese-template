@@ -4,7 +4,7 @@
  * (Tokyo Night Dark / Aki Paper Light)
  *
  * Source & documentation: https://github.com/cassandre60/anki-japanese-template
- * Version: v1.8.70 — auto-bumped by finish.sh; matches the GitHub release tag
+ * Version: v1.8.71 — auto-bumped by finish.sh; matches the GitHub release tag
  *
  * Front = pure retrieval surface (sentence / word / audio only).
  * Back = strong hierarchy: target → reading → meaning → context →
@@ -1152,21 +1152,18 @@
 /* ==============================================================================
     8. SENTENCE & TRANSLATION - Fluid Typography
     ============================================================================== */
-/* Level 3 (context): the sentence supports the target; it reads as
-   context, not as the loudest element (that is the headword). */
+/* Type scale is deliberately unchanged for now (size is a separate
+   decision). The furigana itself follows the older templates: native
+   ruby at the browser's default 50% rt, normal line-height, no custom
+   compact annotation. */
 .sentence-japanese {
   font-family: var(--font-japanese-serif);
-  /* Supporting context: distinctly smaller than the hero headword */
   font-size: clamp(1.2rem, 1.5vw + 0.6rem, 1.85rem);
-  /* Multi-line clearance: each wrapped line needs room for hover furigana
-     above it (rt height + gap), delivered via line-height. Final line is
-     covered by --furigana-headroom on top padding below. */
-  line-height: calc(var(--furigana-headroom) + 1.3em);
-  padding-top: calc(var(--block-pad-y, 0px) + var(--furigana-headroom));
+  line-height: 1.5;
+  padding-top: 0;
   margin-bottom: clamp(8px, 1.5vmin, 14px);
   color: var(--text-primary);
   text-align: center;
-  letter-spacing: 0.03em;
 }
 
 .sentence-japanese,
@@ -1288,30 +1285,18 @@ ruby rt {
   margin-bottom: 2px;
 }
 
-/* Sentence context: grouped readings must be distributed over their base
-   characters, not parked as one block over the compound centre:
-   除菌[でる] => で over 除 / る over 菌; じょきん => two kana per kanji;
-   しょうしゅう => three per kanji. Native ruby + ruby-align:
-   space-around does that in pure CSS (no JS): the annotation is laid
-   out in equal slots across the rb. The universal `text-align: center`
-   above also reaches rt, and Chromium then centres the annotation *run*
-   inside the ruby instead of distributing the kana over the slots — the
-   slots still measure correctly, so only the painted kana reveal it.
-   rt must stay start-aligned for space-around to distribute each kana.
-   0.33em keeps up to three kana inside one kanji
-   (3 × 0.33em = 0.99em), so the common compounds never expand the base;
-   a four-plus-kana reading over a single kanji is the one group that can
-   still widen its base. The hero keeps its absolute 0.55em display
-   scale. */
+/* Sentence context follows the older templates' native ruby: default
+   50% rt, normal line-height, no absolute positioning, no custom display
+   rules beyond resetting this card's global absolute ruby. The only
+   additional line is text-align: start, which keeps a compound field
+   like 除菌[でる] from centring both kana as one run at the boundary;
+   with it, で sits over 除 and る over 菌. Long grouped readings may
+   widen their base, exactly as they did in the older templates. */
 .sentence-japanese ruby {
   display: ruby;
   ruby-align: space-around;
   position: static;
-  line-height: 1;
-}
-
-.sentence-japanese rb {
-  display: ruby-base;
+  line-height: normal;
 }
 
 .sentence-japanese rt {
@@ -1321,9 +1306,10 @@ ruby rt {
   transform: none;
   bottom: auto;
   text-align: start;
-  font-size: 0.33em;
-  line-height: 1;
+  font-size: 0.5em;
+  line-height: normal;
   margin-bottom: 0;
+  color: inherit;
 }
 
 /* Mouse Hover & Mobile Tap Active - 100% Shift-free */

@@ -118,16 +118,19 @@ off-screen context to be solvable is a bad mine and should be re-mined.
 
 - Ultra-compact, content-driven height (no viewport fill, no dead space);
   empty space on the front is acceptable — never filled with UI.
-- Fluid `clamp()` sizing phone → 4K; a compact scenic band spans the card top
-  on desktop and phones, while sentence context remains full-width below it.
+- Fluid `clamp()`/vw sizing phone → 4K; a compact scenic band spans the card
+  top on desktop and phones, while sentence context remains full-width
+  below it.
 - Zero-reflow reveal: hidden furigana is `visibility:hidden` (not
   `display:none`), so hover/tap and `F` mode never shift geometry. The
-  hero uses absolute ruby centred over each `rb`; the sentence
-  distributes each grouped reading over its base characters with native
-  ruby + `ruby-align: space-around` and start-aligned `rt` (with centred
-  `rt`, Chromium paints the kana as one block over the compound even
-  though the ruby slots measure per kanji). `F` toggles full-card
-  furigana on the back.
+  hero uses absolute ruby centred over each `rb`; the sentence follows the
+  older templates' annotation look: native `50%` ruby text in the
+  sentence's own colour with start-aligned `rt`, so each grouped reading
+  sits over its base characters (with centred `rt`, Chromium paints the
+  kana as one block over the compound even though the ruby slots measure
+  per kanji). The sentence's overall type scale is unchanged for now.
+  Long grouped readings may widen their base, as in the older templates.
+  `F` toggles full-card furigana on the back.
 
 - Native-only audio (delegate to Anki replay link, re-tap debounce,
   playback indicator pulse — never HTML5 `Audio`); `R` is Anki-owned

@@ -104,9 +104,10 @@ card-container
  │    └── .hero-side-right (.pitch-quiet + 文 audio)
  ├── definition-box.primary-definition (compacted §6b, 3-line §6c)
  ├── .context-grid (full-width sentence/context surface;
- │    `.sentence-japanese` distributes grouped readings per base
- │    character via native ruby + `ruby-align: space-around` and
- │    start-aligned `rt`)
+ │    `.sentence-japanese` uses older-template native ruby (50% rt,
+ │    sentence colour) and distributes grouped readings per base
+ │    character with start-aligned `rt`; its type scale is unchanged
+ │    for now)
  ├── .more-section (hidden) + .more-toggle "More ▾"
  │    └── translation (click/T) · context · kanji notes · notes · source
  │        (.source-footer) · full extended definition (.extended-full —
