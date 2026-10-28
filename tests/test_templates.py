@@ -435,9 +435,21 @@ def main():
     check("Back: More section + toggle self-remove when secondary content is absent",
           "btn.remove()" in back and "section.remove()" in back)
 
-    # 10c. Degenerate content removes itself instead of leaving chrome behind.
+    # 10c. Degenerate content removes itself instead of leaving chrome
+    # behind — but media counts as content: an image-only Definition must
+    # never be deleted, nor clipped by the 3-line prose cap.
     check("Back: blank definition box is removed (no bordered void)",
-          "box.remove()" in back)
+          "window.prepareDefinitionBoxes" in back and "box.remove()" in back)
+    check("Back: definition collapse is media-aware (image-only definitions survive)",
+          "window.hasVisualContent" in back
+          and "is-media-only" in back
+          and re.search(r"if \(!hasText && !hasVisual\) \{ box\.remove\(\);", back) is not None)
+    check("Back: secondary/translation cleanup keeps image-only content",
+          back.count("window.hasVisualContent(el)") >= 2)
+    check("CSS: media-only definition escapes the 3-line text cap",
+          re.search(r"\.definition-box\.primary-definition\.is-media-only\s*\{[^}]*max-height:\s*none", css) is not None)
+    check("CSS: definition media stays inside the card and keeps aspect ratio",
+          re.search(r"\.definition-box\.primary-definition img\b[^{}]*\{[^}]*max-width:\s*100%[^}]*height:\s*auto", css) is not None)
     check("Front: blank sentence block is removed after cloze fixup",
           "sd.remove()" in front)
 

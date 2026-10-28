@@ -426,6 +426,41 @@
     };
 
     /* --- DEFINITION TRUNCATOR (3-line cap + click to expand, stays open) --- */
+    /* Visual-content probe: a Definition may legitimately be a pasted image
+       with no text nodes at all (alt text is not textContent). A text-only
+       emptiness check would delete that content, so the collapse rules below
+       treat an image/video/audio/canvas as content too. Mirrors the front's
+       hasVisualContent guard (QUALITY.md "Empty-field collapse"). */
+    window.hasVisualContent = function(element) {
+      return !!(element && element.querySelector(
+        'img, video, audio, source, picture, canvas, svg, iframe, object, embed'));
+    };
+
+    /* Classify definition boxes BEFORE the deferred truncation measure so an
+       image-only definition never spends a frame clipped to the 3-line text
+       cap. Idempotent for WebView DOM re-use. */
+    window.prepareDefinitionBoxes = function(root) {
+      const scope = root || document;
+      scope.querySelectorAll('.primary-definition').forEach(function(box) {
+        const hasText = !!(box.textContent || '').trim();
+        const hasVisual = window.hasVisualContent(box);
+        /* Truly blank (no text, no media) => no bordered void. */
+        if (!hasText && !hasVisual) { box.remove(); return; }
+        /* Media-only (e.g. a pasted folding-guide image): the 3-line text
+           cap would clip it to a meaningless strip. Render it whole and
+           drop the text-expand affordance it no longer has. */
+        if (hasVisual && !hasText) {
+          box.classList.add('is-media-only');
+          box.classList.remove('is-truncated', 'is-expanded');
+          box.removeAttribute('role');
+          box.removeAttribute('tabindex');
+          box.removeAttribute('onclick');
+          box.removeAttribute('onkeydown');
+          box.removeAttribute('aria-expanded');
+        }
+      });
+    };
+
     window.expandDefinition = function(element) {
       if (element.classList.contains('is-expanded')) return;
       element.classList.add('is-expanded');
@@ -441,9 +476,11 @@
 
     window.initDefinitionTruncation = function(root) {
       const scope = root || document;
+      window.prepareDefinitionBoxes(scope);
       /* Subpixel rounding tolerance for scrollHeight vs clientHeight. */
       const TRUNC_SLACK_PX = 2;
       scope.querySelectorAll('.primary-definition').forEach(function(box) {
+        if (box.classList.contains('is-media-only')) return;
         if (!box.textContent || !box.textContent.trim()) { box.remove(); return; }
         box.classList.remove('is-expanded');
         box.setAttribute('aria-expanded', 'false');
@@ -501,7 +538,9 @@
             /* Lazy host: content lives in the sibling template until first
                open — never strip it here. */
             if (el.hasAttribute('data-lazy')) return;
-            if (!el.textContent || !el.textContent.trim()) el.remove();
+            const hasText = !!(el.textContent || '').trim();
+            /* Image-only secondary content is content, not a blank shell. */
+            if (!hasText && !window.hasVisualContent(el)) el.remove();
           });
           if (!section.querySelector('.secondary-block, .extended-full, .source-footer, template.extended-full-tpl')) {
             btn.remove();
@@ -511,7 +550,8 @@
       } catch (e) { /* keep default rendering */ }
       try {
         document.querySelectorAll('.translation-box, .revealed-static').forEach(function(el) {
-          if (!el.textContent || !el.textContent.trim()) el.remove();
+          const hasText = !!(el.textContent || '').trim();
+          if (!hasText && !window.hasVisualContent(el)) el.remove();
         });
       } catch (e) { /* keep default rendering */ }
     };
@@ -677,6 +717,7 @@
 
     /* Prune first: the truncation measure below then runs over the small
        live DOM instead of the full hidden glossary. */
+    window.prepareDefinitionBoxes();
     window.pruneCompactedGlossary();
     window.renderFrequencyIndicator();
     window.initSecondarySection();

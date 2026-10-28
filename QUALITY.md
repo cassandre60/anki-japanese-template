@@ -173,9 +173,11 @@ mechanically verified*. Code implements; tests enforce.
   absent: `.audio-row`, `.context-grid`, and `.context-main` via `:has()` guards;
   `.more-section` + `.more-toggle` self-remove via JS cleanup.
 - Degenerate content removes itself instead of leaving chrome behind:
-  blank definition/sentence blocks are removed (front runs after the cloze
-  fixup, before the reveal); empty secondary blocks inside More are
-  stripped.
+  a definition/sentence block is removed only when it has neither text nor
+  media (front runs after the cloze fixup, before the reveal); an
+  image-only definition renders whole rather than clipped by the 3-line
+  prose cap; empty secondary blocks inside More are stripped (media-only
+  blocks survive).
 - **No control is rendered unless its backing field/content exists**: audio
   buttons are gated on their audio field; the More toggle and its section
   self-remove when no secondary content exists; shortcut hints for `X`/`C`
