@@ -116,5 +116,5 @@ badges or verbose labels · vanilla scoped JS resilient to WebView DOM re-use.
 `Card 1 - Style.css` (themes, layout, compactor §6b, truncator §6c) ·
 `fetch_anki_fields.py` · `sync_to_anki.py` · `release_apkg.py` · `verify` ·
 `finish.sh` · `tests/` (compactor + templates + front_modes +
-mature_content + layout) · `docs/adr/` · `chat_history/` · `dist/` +
-`backups/` (gitignored).
+mature_content + layout + readability) · `docs/adr/` · `chat_history/` ·
+`dist/` + `backups/` (gitignored).

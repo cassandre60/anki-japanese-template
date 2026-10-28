@@ -38,6 +38,7 @@ run `./verify`; CI re-runs `./verify` after every push.
 | Stdlib-only sync, microsecond backups, finish.sh no-op guard | `tests/test_templates.py` §9 |
 | Content-driven height, no h-overflow, furigana containment, type hierarchy, 3-line clamp + one-way expand, listening target size, context grid, More collapsed by default, footer containment; grouped sentence furigana distributes per kanji (`除菌[でる]` → で/除, る/菌) with start-aligned `rt` | `tests/test_layout.py` — headless Chrome on the **real** stylesheet; skipped gracefully when Chrome is absent |
 | Shortcut hints stay usable on phones: visible (never `display:none`), ≥44px tall, all three in one row inside the card | `tests/test_layout.py` mobile probes (desktop too) |
+| Muted text meets WCAG AA in both themes; hint bar/source footer carry no opacity multiplier; frequency stars, Z/X/C labels, and small audio label keep a 12px floor | `tests/test_readability.py` — stdlib CSS token/rule parser; no browser |
 | Listening resolver behavior: classic audio-only fields and `#listening` tag activate the audio front; gloss/no-tag, no-audio, and Frequency-legacy shapes keep the sentence front | `tests/test_front_modes.py` — extracts the real resolver from the front template and runs 6 state harnesses in headless Chrome; skipped gracefully when Chrome is absent |
 | Clean-environment pass, no forgotten files/deps | CI (`.github/workflows/verify.yml`) runs `./verify` |
 | Every UI element collapses when its field is empty | `tests/test_templates.py` §10 — conditional-enclosure parser over Front/Back, `:has()` shell-guard checks, JS self-removal checks |
@@ -64,6 +65,7 @@ that file; layout regressions → new `test_layout.py` probe assertion.
 
 - `test_compactor.py`: `beautifulsoup4` + `soupsieve` (test-only).
 - `test_templates.py`: stdlib only (node optional for JS syntax checks).
+- `test_readability.py`: stdlib only.
 - `test_front_modes.py`: headless Chrome if present, else skip (pass).
 - `test_mature_content.py`: headless Chrome if present, else skip (pass).
 - `test_layout.py`: headless Chrome if present, else skip (pass).
