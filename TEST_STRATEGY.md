@@ -28,6 +28,7 @@ run `./verify`; CI re-runs `./verify` after every push.
 | Balanced Anki conditionals | `tests/test_templates.py` §5 |
 | Minimal redesign: no tags bar / frequency badges; More collapse; state label; F/T shortcuts; listening resolver wiring | `tests/test_templates.py` §§6b–6c |
 | `:focus-visible`, reduced motion, content-driven sizing, context-grid fallback, clamp() authority, no JS font override | `tests/test_templates.py` §§6–7 |
+| Design-system adaptation: tokenised motion, press/focus states, border and radius scale, 12px chrome labels, AA muted contrast, CJK text-wrap | `tests/test_design_system.py` — parses the real stylesheet, computes WCAG contrast, rejects raw easing / sub-200ms transitions and off-scale radii |
 | Mature Word Mode: const, desktop-only retrieval, no executable AnkiDroid JS API / bridge code, mobile degrades to sentence, no `note:` clause, anti-flash gate, word-mode CSS | `tests/test_templates.py` §8b |
 | Mature content-search fallback: never picks candidate 0, Sentence + cloze-body discriminators, fails safely on ambiguity, exact-card resolution | `tests/test_mature_content.py` — extracts the content-search block verbatim, runs 6 headless Chrome cases with mocked AnkiConnect (skipped gracefully without Chrome) |
 | Listening Policy B + exactly-one-button: `#listening` without audio → sentence front; `#listening` with audio → listening front; both-views markup → exactly one active; dead/duplicate views removed | `tests/test_front_modes.py` — 8 state harnesses in headless Chrome (skipped gracefully without Chrome) |

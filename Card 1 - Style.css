@@ -34,7 +34,7 @@
   --card-border: rgba(255, 255, 255, 0.06);
   --text-primary: #e8edf5;
   --text-secondary: #8b99b0;
-  --text-muted: #5a687d;
+  --text-muted: #77869d;
   
   --accent-color: #e07a5f;
   --accent-light: rgba(224, 122, 95, 0.10);
@@ -56,8 +56,21 @@
                     0 2px 8px -2px rgba(0, 0, 0, 0.25);
   --shadow-soft: 0 2px 12px -4px rgba(0, 0, 0, 0.3);
   --border-radius-lg: 16px;
-  --border-radius-md: 10px;
+  --border-radius-md: 8px;
   --border-radius-sm: 6px;
+
+  /* Motion system (visual rule B7): one decelerating curve, two durations.
+     Every transition resolves through these tokens; a raw `ease` keyword or
+     a sub-200ms hover is a regression (tests/test_design_system.py). */
+  --motion-hover: 200ms;
+  --motion-settle: 300ms;
+  --ease-settle: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* UI chrome label scale (visual rule B1, adapted): fixed-size interface
+     labels share one 12px step instead of eight ad-hoc values. Japanese
+     content keeps its measured fluid clamp() scale — that is product-owned
+     typography, not chrome. */
+  --text-label: 0.75rem;
 
   /* Spacing Tokens - Fluid viewport-based (tightened density pass:
      hero-header single row saves one full-width row, so section gaps
@@ -105,7 +118,7 @@
   --card-border: rgba(0, 0, 0, 0.06);
   --text-primary: #1a1c20;
   --text-secondary: #515a6b;
-  --text-muted: #8a909d;
+  --text-muted: #6b7280;
   
   --accent-color: #b84a39;
   --accent-light: rgba(184, 74, 57, 0.08);
@@ -144,7 +157,7 @@
   --card-border: rgba(255, 255, 255, 0.06);
   --text-primary: #e8edf5;
   --text-secondary: #8b99b0;
-  --text-muted: #5a687d;
+  --text-muted: #77869d;
   --accent-color: #e07a5f;
   --accent-light: rgba(224, 122, 95, 0.10);
   --accent-soft: rgba(224, 122, 95, 0.20);
@@ -228,7 +241,7 @@
 /* "More ▾" — a quiet, elegant editorial disclosure */
 .more-toggle {
   font-family: var(--font-interface);
-  font-size: 0.78rem;
+  font-size: var(--text-label);
   font-weight: 500;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -242,8 +255,10 @@
   gap: 5px;
   cursor: pointer;
   border-radius: 9999px;
-  transition: color 0.2s ease, background-color 0.2s ease,
-              border-color 0.2s ease, transform 0.15s ease;
+  transition: color var(--motion-hover) var(--ease-settle),
+              background-color var(--motion-hover) var(--ease-settle),
+              border-color var(--motion-hover) var(--ease-settle),
+              transform var(--motion-hover) var(--ease-settle);
   user-select: none;
   -webkit-tap-highlight-color: transparent;
 }
@@ -267,11 +282,15 @@
   outline-offset: 1px;
 }
 
+.more-toggle:active {
+  transform: translateY(1px);
+}
+
 .more-toggle .more-caret {
   display: inline-block;
   font-size: 0.7rem;
   margin-left: 2px;
-  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: transform var(--motion-settle) var(--ease-settle);
 }
 
 .more-toggle.is-open .more-caret {
@@ -434,7 +453,7 @@
   /* Brushstroke-inspired underline: a warm gradient that tapers like ink */
   background: linear-gradient(transparent 76%, var(--accent-soft) 76%, var(--accent-light) 94%);
   padding: 0 5px;
-  border-radius: 3px;
+  border-radius: 2px;
 }
 
 /* Back sentence target matches surrounding weight — color + underline mark it. */
@@ -444,7 +463,7 @@
   font-weight: 400;
   background: linear-gradient(transparent 76%, var(--accent-soft) 76%, var(--accent-light) 94%);
   padding: 0 5px;
-  border-radius: 3px;
+  border-radius: 2px;
 }
 
 /* Back headword: never bold, even if Yomitan injects <b>/<strong>. */
@@ -570,6 +589,7 @@
   font-weight: 400;
   line-height: calc(var(--furigana-headroom) + 1.15em);
   letter-spacing: 0.06em;
+  text-wrap: balance;
   padding-top: calc(var(--block-pad-y, 0px) + var(--furigana-headroom));
   padding-bottom: clamp(2px, 0.5vh, 6px);
   margin: 0;
@@ -600,7 +620,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.82rem;
+  font-size: var(--text-label);
   font-weight: 600;
   color: var(--accent-color);
   background-color: var(--accent-light);
@@ -609,7 +629,6 @@
   border-radius: 9999px;
   line-height: 1;
   cursor: default;
-  transition: all 0.2s ease;
   user-select: none;
 }
 
@@ -627,13 +646,15 @@
 
 .frequency-bar-fill {
   height: 100%;
-  width: 0%;
+  width: 100%;
   border-radius: 2px;
-  transition: width 0.3s ease;
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform var(--motion-settle) var(--ease-settle);
 }
 
 .frequency-stars {
-  font-size: 0.7rem;
+  font-size: var(--text-label);
   letter-spacing: 0.05em;
   line-height: 1;
 }
@@ -846,6 +867,7 @@
   padding-top: var(--furigana-headroom);
   width: 100%;
   text-align: center;
+  text-wrap: pretty;
 }
 
 
@@ -1010,6 +1032,15 @@
   color: var(--accent-color);
 }
 
+/* The whole box is tabindex="0" role="button". Before JS marks it truncated
+   the click affordance is invisible and keyboard users had no ring at all;
+   the focus state must exist regardless of overflow (visual rule B9). */
+.definition-box.primary-definition:focus-visible {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
 /* ==============================================================================
    7. CIRCULAR AUDIO BUTTON WITH SVG PROGRESS RING
    ============================================================================== */
@@ -1034,10 +1065,10 @@
   padding: 0;
   margin: 0;
   outline: none;
-  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
-              border-color 0.2s ease,
-              background-color 0.2s ease,
-              box-shadow 0.2s ease;
+  transition: transform var(--motion-settle) var(--ease-settle),
+              border-color var(--motion-hover) var(--ease-settle),
+              background-color var(--motion-hover) var(--ease-settle),
+              box-shadow var(--motion-hover) var(--ease-settle);
   user-select: none;
   -webkit-tap-highlight-color: transparent;
 }
@@ -1079,6 +1110,12 @@
   border-color: var(--accent-color);
   background-color: var(--accent-soft);
   box-shadow: var(--accent-glow);
+}
+
+/* Pressed state depresses instead of growing: hover and press are distinct
+   physical states (visual rule B9). */
+.circular-audio-btn:active {
+  transform: scale(0.98);
 }
 
 .circular-audio-btn.is-playing {
@@ -1123,12 +1160,12 @@
 
 .small-audio-btn .audio-btn-label {
   font-family: var(--font-japanese-serif);
-  font-size: 0.75rem;
+  font-size: var(--text-label);
   font-weight: 500;
   color: var(--text-muted);
   letter-spacing: 0.02em;
   line-height: 1;
-  transition: color 0.15s ease;
+  transition: color var(--motion-hover) var(--ease-settle);
 }
 
 .small-audio-btn:hover .audio-btn-label {
@@ -1164,6 +1201,7 @@
   margin-bottom: clamp(8px, 1.5vmin, 14px);
   color: var(--text-primary);
   text-align: center;
+  text-wrap: pretty;
 }
 
 .sentence-japanese,
@@ -1177,11 +1215,11 @@
   line-height: 1.6;
   color: var(--text-secondary);
   text-align: left;
+  text-wrap: pretty;
   margin-top: 10px;
   padding: clamp(6px, 1vh, 12px) var(--block-pad-x);
   background: var(--warm-accent);
   border-radius: var(--border-radius-sm);
-  border-left: 2px solid var(--separator-accent);
 }
 
 .translation-box {
@@ -1190,8 +1228,9 @@
   border-radius: var(--border-radius-md);
   padding: 10px 16px;
   cursor: pointer;
-  transition: background-color 0.2s ease, border-color 0.2s ease,
-              transform 0.15s ease;
+  transition: background-color var(--motion-hover) var(--ease-settle),
+              border-color var(--motion-hover) var(--ease-settle),
+              transform var(--motion-hover) var(--ease-settle);
   width: 100%;
   max-width: 68ch;
   margin: 8px auto;
@@ -1202,6 +1241,10 @@
   background-color: var(--accent-soft);
   border-color: var(--accent-color);
   transform: translateY(-1px);
+}
+
+.translation-box:active {
+  transform: translateY(1px);
 }
 
 .card:not(.nightMode):not(.night_mode) .translation-box {
@@ -1215,7 +1258,7 @@
 }
 
 .translation-hint {
-  font-size: 0.82rem;
+  font-size: var(--text-label);
   font-weight: 500;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -1278,7 +1321,7 @@ ruby rt {
   visibility: hidden;
   opacity: 0;
   color: var(--accent-color);
-  transition: opacity 0.15s ease-out;
+  transition: opacity var(--motion-hover) var(--ease-settle);
   pointer-events: none;
   user-select: none;
   /* Gap above the base text — part of the reserved headroom */
@@ -1357,8 +1400,8 @@ ruby:focus-within rt {
   border: 1px solid var(--card-border);
   box-shadow: var(--shadow-premium);
   cursor: zoom-in;
-  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
-              box-shadow 0.3s ease;
+  transition: transform var(--motion-settle) var(--ease-settle),
+              box-shadow var(--motion-settle) var(--ease-settle);
 }
 
 .card:not(.nightMode):not(.night_mode) .picture-container img {
@@ -1369,6 +1412,10 @@ ruby:focus-within rt {
 .picture-container img:hover {
   transform: scale(1.02);
   box-shadow: var(--shadow-premium), var(--accent-glow);
+}
+
+.picture-container img:active {
+  transform: scale(0.99);
 }
 
 .lightbox-overlay {
@@ -1397,7 +1444,7 @@ ruby:focus-within rt {
   z-index: 2001;
   border-radius: var(--border-radius-md);
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.88);
-  animation: lightboxIn 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
+  animation: lightboxIn var(--motion-hover) var(--ease-settle);
 }
 
 @keyframes lightboxIn {
@@ -1422,7 +1469,7 @@ ruby:focus-within rt {
 }
 
 .extended-def-header {
-  font-size: 0.72rem;
+  font-size: var(--text-label);
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -1439,13 +1486,7 @@ ruby:focus-within rt {
   gap: 12px;
   margin: clamp(6px, 1vh, 12px) auto 4px auto;
   padding: 6px 12px;
-  opacity: 0.55;
-  transition: opacity 0.2s ease;
   user-select: none;
-}
-
-.shortcut-hints:hover {
-  opacity: 0.95;
 }
 
 .shortcut-item {
@@ -1455,7 +1496,7 @@ ruby:focus-within rt {
   padding: 3px 7px;
   margin: -3px 0;
   font-family: inherit;
-  font-size: 0.72rem;
+  font-size: var(--text-label);
   color: var(--text-muted);
   font-weight: 500;
   letter-spacing: 0.02em;
@@ -1463,10 +1504,12 @@ ruby:focus-within rt {
      reset to pure text, and the accent only appears on hover/focus. */
   background: none;
   border: 1px solid transparent;
-  border-radius: 5px;
+  border-radius: 6px;
   cursor: pointer;
-  transition: color 0.15s ease, background-color 0.15s ease,
-              border-color 0.15s ease;
+  transition: color var(--motion-hover) var(--ease-settle),
+              background-color var(--motion-hover) var(--ease-settle),
+              border-color var(--motion-hover) var(--ease-settle),
+              transform var(--motion-hover) var(--ease-settle);
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -1484,13 +1527,14 @@ ruby:focus-within rt {
 
 .shortcut-item:active {
   background-color: var(--accent-soft);
+  transform: translateY(1px);
 }
 
 .shortcut-item kbd {
   display: inline-block;
   padding: 1px 5px;
   font-family: var(--font-interface);
-  font-size: 0.68rem;
+  font-size: var(--text-label);
   font-weight: 600;
   line-height: 1.2;
   color: var(--text-primary);
@@ -1515,12 +1559,11 @@ ruby:focus-within rt {
 .source-footer {
   text-align: center;
   padding: 8px 0 4px;
-  font-size: 0.72rem;
+  font-size: var(--text-label);
   font-weight: 500;
   color: var(--text-muted);
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  opacity: 0.7;
 }
 
 /* Source lives inside .more-section (hidden by default, revealed via
@@ -1632,16 +1675,11 @@ ruby:focus-within rt {
 
   .frequency-badge {
     padding: 2px 7px;
-    font-size: 0.74rem;
     gap: 4px;
   }
 
   .frequency-bar-track {
     width: 24px;
-  }
-
-  .frequency-stars {
-    font-size: 0.62rem;
   }
 
   .context-grid:has(.context-picture) {
@@ -1667,12 +1705,7 @@ ruby:focus-within rt {
     height: 32px;
   }
 
-  .small-audio-btn .audio-btn-label {
-    font-size: 0.66rem;
-  }
-
   .more-toggle {
-    font-size: 0.72rem;
     padding: 5px 12px;
     margin-top: 8px;
   }
@@ -1695,16 +1728,11 @@ ruby:focus-within rt {
 
   /* Phones keep the Z/X/C bar: the hints are clickable controls, not
      keyboard decoration, so on a touch device they are the only shortcut
-     affordance there is. No hover on touch, so the resting opacity is
-     raised here (the desktop .shortcut-hints:hover bump can't fire). */
-  .shortcut-hints {
-    opacity: 0.75;
-  }
-
+     affordance there is. The muted token already carries AA contrast, so
+     no transparency multiplier is needed here. */
   /* Touch target: 44px min height (the desktop rule is a 20px text chip —
      finger-sized on a mouse-driven card, too small for a thumb). */
   .shortcut-item {
-    font-size: 0.65rem;
     min-height: 44px;
     padding: 8px 12px;
     margin: 0;
@@ -1822,7 +1850,7 @@ ruby:focus-within rt {
 .back-card .audio-row,
 .back-card .context-grid,
 .back-card .card-separator {
-  animation: fadeInUp 0.15s ease-out both;
+  animation: fadeInUp 0.15s var(--ease-settle) both;
 }
 
 @keyframes fadeInUp {
@@ -1840,7 +1868,7 @@ ruby:focus-within rt {
 .card-container .sentence-display,
 .card-container .front-word-display,
 .card-container .listening-view {
-  animation: fadeIn 0.15s ease-out both;
+  animation: fadeIn 0.15s var(--ease-settle) both;
 }
 
 @keyframes fadeIn {
@@ -1944,6 +1972,17 @@ ruby:focus-within rt {
   width: 124%; height: 124%;
   object-fit: cover;
   filter: saturate(var(--scenic-sat)) contrast(1.05) brightness(1.03) blur(var(--scenic-blur));
+  transition: transform var(--motion-settle) var(--ease-settle);
+}
+
+/* The band is the lightbox trigger: it needs the same hover/press feedback
+   as the inline picture (visual rule B9). */
+.scenic-photo:hover img {
+  transform: scale(1.02);
+}
+
+.scenic-photo:active img {
+  transform: scale(0.995);
 }
 
 .scenic-photo .tint {

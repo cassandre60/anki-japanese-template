@@ -317,7 +317,9 @@
         badge.setAttribute('aria-label', '語彙頻度: ' + tierLabel);
 
         const fill = badge.querySelector('.frequency-bar-fill');
-        if (fill) fill.style.width = fillPercent + '%';
+        // scaleX, not width: the bar animates on the compositor and never
+        // triggers layout (visual rule B7: transform/opacity only).
+        if (fill) fill.style.transform = 'scaleX(' + (fillPercent / 100) + ')';
 
         const starContainer = badge.querySelector('.frequency-stars');
         if (starContainer) {

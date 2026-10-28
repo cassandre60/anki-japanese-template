@@ -108,6 +108,9 @@ untouched,
 anti-flash gate) · `#listening` requires usable audio (Policy B: falls back
 to sentence without it) · `:has()` is intentional architecture · no debug
 badges or verbose labels · vanilla scoped JS resilient to WebView DOM re-use.
+`docs/design/VISUAL_SYSTEM.md` is the card-adaptation boundary for the
+vendored `landing-page-design` skill: only its Part B visual rules apply
+(and only as recorded there); Part A (landing-page strategy) never does.
 
 ## File map
 
@@ -116,5 +119,5 @@ badges or verbose labels · vanilla scoped JS resilient to WebView DOM re-use.
 `Card 1 - Style.css` (themes, layout, compactor §6b, truncator §6c) ·
 `fetch_anki_fields.py` · `sync_to_anki.py` · `release_apkg.py` · `verify` ·
 `finish.sh` · `tests/` (compactor + templates + front_modes +
-mature_content + layout) · `docs/adr/` · `chat_history/` · `dist/` +
-`backups/` (gitignored).
+mature_content + layout + design_system) · `docs/adr/` · `docs/design/` ·
+`chat_history/` · `dist/` + `backups/` (gitignored).

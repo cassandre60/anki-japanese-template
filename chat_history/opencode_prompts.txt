@@ -2582,3 +2582,11 @@ make furigna bigger and sync so i test
 
 make snetence and furigna a bit bigger in desktop
 make snetence and expression a both also a bit in mobile(note that in desktop expressionis waytbi gger then snetence, by deign but this is not respected on mopbile so fix it)
+
+---
+
+downlaod and apply this skill to the template https://github.com/elayadesign/ai-design-skills
+
+---
+
+do it as a new bracnh

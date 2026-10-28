@@ -160,6 +160,12 @@ mechanically verified*. Code implements; tests enforce.
 - Word-mode swap rules exist and never touch `.listening-view`; the
   listening-view is inert until `.listening-mode` activates it.
 - `:focus-visible` indicators and `prefers-reduced-motion` present.
+- Design-system adaptation (`docs/design/VISUAL_SYSTEM.md`): every
+  `transition` resolves through `--ease-settle` / `--motion-*` (no raw
+  easing keywords, no sub-200ms hover); interactive controls carry hover,
+  press, and focus states; UI chrome labels use `--text-label` (12px);
+  radii stay on the Tailwind scale; card blocks never use single-sided
+  borders; muted text keeps 4.5:1 contrast in both themes.
 - Accent color is reserved for target highlighting and interactive
   states; frequency indicator uses semantic tier colors (--freq-*).
 
