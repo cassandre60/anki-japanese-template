@@ -24,6 +24,8 @@ echo "==> verify: Yūkei scenic-band contracts (ADR 005/006)"
 python3 tests/test_yukei.py
 echo "==> verify: template structural invariants"
 python3 tests/test_templates.py
+echo "==> verify: readability (muted-text contrast, 12px chrome-label floor)"
+python3 tests/test_readability.py
 echo "==> verify: front-mode resolver behavior (listening semantics)"
 python3 tests/test_front_modes.py
 echo "==> verify: mature content-search fallback (duplicate cards / ambiguity)"

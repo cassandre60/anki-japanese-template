@@ -34,7 +34,7 @@
   --card-border: rgba(255, 255, 255, 0.06);
   --text-primary: #e8edf5;
   --text-secondary: #8b99b0;
-  --text-muted: #5a687d;
+  --text-muted: #77869d;
   
   --accent-color: #e07a5f;
   --accent-light: rgba(224, 122, 95, 0.10);
@@ -105,7 +105,7 @@
   --card-border: rgba(0, 0, 0, 0.06);
   --text-primary: #1a1c20;
   --text-secondary: #515a6b;
-  --text-muted: #8a909d;
+  --text-muted: #6b7280;
   
   --accent-color: #b84a39;
   --accent-light: rgba(184, 74, 57, 0.08);
@@ -144,7 +144,7 @@
   --card-border: rgba(255, 255, 255, 0.06);
   --text-primary: #e8edf5;
   --text-secondary: #8b99b0;
-  --text-muted: #5a687d;
+  --text-muted: #77869d;
   --accent-color: #e07a5f;
   --accent-light: rgba(224, 122, 95, 0.10);
   --accent-soft: rgba(224, 122, 95, 0.20);
@@ -632,8 +632,10 @@
   transition: width 0.3s ease;
 }
 
+/* Chrome-label floor: frequency stars, Z/X/C labels, and the small audio
+   label stay at 12px; the mobile block must not down-scale them. */
 .frequency-stars {
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   letter-spacing: 0.05em;
   line-height: 1;
 }
@@ -1459,13 +1461,7 @@ ruby:focus-within rt {
   gap: 12px;
   margin: clamp(6px, 1vh, 12px) auto 4px auto;
   padding: 6px 12px;
-  opacity: 0.55;
-  transition: opacity 0.2s ease;
   user-select: none;
-}
-
-.shortcut-hints:hover {
-  opacity: 0.95;
 }
 
 .shortcut-item {
@@ -1475,7 +1471,7 @@ ruby:focus-within rt {
   padding: 3px 7px;
   margin: -3px 0;
   font-family: inherit;
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   color: var(--text-muted);
   font-weight: 500;
   letter-spacing: 0.02em;
@@ -1540,7 +1536,6 @@ ruby:focus-within rt {
   color: var(--text-muted);
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  opacity: 0.7;
 }
 
 /* Source lives inside .more-section (hidden by default, revealed via
@@ -1660,10 +1655,6 @@ ruby:focus-within rt {
     width: 24px;
   }
 
-  .frequency-stars {
-    font-size: 0.62rem;
-  }
-
   .context-grid:has(.context-picture) {
     flex-direction: column;
     gap: 8px;
@@ -1685,10 +1676,6 @@ ruby:focus-within rt {
   .small-audio-btn {
     width: 32px;
     height: 32px;
-  }
-
-  .small-audio-btn .audio-btn-label {
-    font-size: 0.66rem;
   }
 
   .more-toggle {
@@ -1715,16 +1702,11 @@ ruby:focus-within rt {
 
   /* Phones keep the Z/X/C bar: the hints are clickable controls, not
      keyboard decoration, so on a touch device they are the only shortcut
-     affordance there is. No hover on touch, so the resting opacity is
-     raised here (the desktop .shortcut-hints:hover bump can't fire). */
-  .shortcut-hints {
-    opacity: 0.75;
-  }
-
+     affordance there is. Full opacity: there is no hover to reveal a
+     faded bar. */
   /* Touch target: 44px min height (the desktop rule is a 20px text chip —
      finger-sized on a mouse-driven card, too small for a thumb). */
   .shortcut-item {
-    font-size: 0.65rem;
     min-height: 44px;
     padding: 8px 12px;
     margin: 0;
