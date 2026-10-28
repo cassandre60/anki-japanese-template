@@ -194,7 +194,7 @@ PROBE = """(() => {
     const rt = sent.querySelector('rt');
     const sb = sent.getBoundingClientRect();
     if (rt) { const rtb = rt.getBoundingClientRect();
-      r.sentRtInside = rtb.top >= sb.top - 0.5; }
+      r.sentRtTopDelta = +(rtb.top - sb.top).toFixed(2); }
     r.sentH = sb.height;
   }
     const def = document.querySelector('#def');
@@ -621,8 +621,13 @@ def main():
         check("desktop back: no horizontal overflow", not back["hOverflow"])
         check("desktop back: word furigana stays inside its line box",
               back.get("wordRtInside", True))
+        # Native ruby at line-height 1.5 sits exactly on the sentence border
+        # box (delta 0.00px locally). The Ubuntu runner's fallback font puts
+        # it a hair above, so 0.5px was below cross-platform variance. Allow
+        # 2px: a deliberate 20px rt escape still fails (negative control).
         check("desktop back: sentence furigana stays inside its block",
-              back.get("sentRtInside", True))
+              back.get("sentRtTopDelta", 0) >= -2.0,
+              f"rt top {back.get('sentRtTopDelta')}px relative to sentence top")
         check("desktop back: hierarchy word > sentence > definition > notes",
               back.get("hierarchy", False),
               f"word={back.get('wordFont')} sent={back.get('sentFont')} "
