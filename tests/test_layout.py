@@ -35,6 +35,31 @@ PASS = 0
 FAIL = 0
 
 
+def japanese_font_available():
+    """Whether fontconfig can supply a Japanese font (None if unqueryable).
+
+    Every layout probe here measures painted CJK boxes. Without a Japanese
+    font each glyph becomes a tofu box with fallback metrics: ruby slots are
+    uniformly 1em wide, so collision probes measure nothing and the vertical
+    offset check reports a bogus constant (13px locally, 10px on a bare CI
+    runner, versus ~0 with real glyphs). Refuse to run rather than certify
+    tofu.
+    """
+    if not shutil.which("fc-list"):
+        return None
+    try:
+        out = subprocess.run(
+            ["fc-list", ":lang=ja"],
+            capture_output=True,
+            text=True,
+            timeout=20,
+            check=False,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return None
+    return bool(out.stdout.strip())
+
+
 def check(name, cond, detail=""):
     global PASS, FAIL
     tag = "PASS" if cond else "FAIL"
@@ -695,6 +720,20 @@ def main():
     if not CHROME:
         print("[SKIP] no headless Chrome found — layout checks skipped")
         return 0 if FAIL == 0 else 1
+    has_japanese_font = japanese_font_available()
+    if has_japanese_font is False:
+        print(
+            "[FAIL] no Japanese font installed — layout probes would measure "
+            "tofu metrics instead of glyphs\n"
+            "       install one (Arch: noto-fonts-cjk, "
+            "Debian/Ubuntu: fonts-noto-cjk)"
+        )
+        return 1
+    if has_japanese_font is None:
+        print(
+            "[WARN] fontconfig unavailable (fc-list missing) — cannot confirm "
+            "a Japanese font is installed"
+        )
     css = css_early
     # Headless virtual-time freezes the card entrance animations
     # (fadeInUp `both` fill) mid-flight, shifting measured Y positions by
