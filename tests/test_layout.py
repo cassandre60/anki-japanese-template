@@ -454,6 +454,102 @@ SENTENCE_TWO_KANA_FURIGANA = (
     "</div>"
 )
 
+# Hero regression corpus for the reported べん|きょう collision. The old
+# hero rule centred each rt absolutely over its rb; readings wider than
+# their base (べん over 勉, きょう over 強) painted into the neighbouring
+# annotation. These cases cover the reported word, the previous 住所
+# report, mixed bare-kana bases, short readings, and a deliberately long
+# single-kanji reading. The probe measures painted per-character boxes,
+# not rt slot boxes, so it cannot pass on the old absolute layout.
+HERO_RT_FURIGANA = (
+    '<div class="word-display" id="hero-rt-benkyou">'
+    "<ruby><rb>勉</rb><rt>べん</rt></ruby>"
+    "<ruby><rb>強</rb><rt>きょう</rt></ruby></div>"
+    '<div class="word-display" id="hero-rt-juusho">'
+    "<ruby><rb>住</rb><rt>じゅう</rt></ruby>"
+    "<ruby><rb>所</rb><rt>しょ</rt></ruby></div>"
+    '<div class="word-display" id="hero-rt-itametsuke">'
+    "<ruby><rb>痛</rb><rt>いた</rt></ruby>め"
+    "<ruby><rb>付</rb><rt>つ</rt></ruby>ける</div>"
+    '<div class="word-display" id="hero-rt-kanji">'
+    "<ruby><rb>漢</rb><rt>かん</rt></ruby>"
+    "<ruby><rb>字</rb><rt>じ</rt></ruby></div>"
+    '<div class="word-display" id="hero-rt-long">'
+    "<ruby><rb>承</rb><rt>うけたまわ</rt></ruby>る</div>"
+)
+
+HERO_RT_PROBE = """(() => {
+  const charBoxes = (el) => {
+    const boxes = [];
+    const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, {
+      acceptNode(n) {
+        if (!n.textContent) return NodeFilter.FILTER_REJECT;
+        return NodeFilter.FILTER_ACCEPT;
+      }
+    });
+    while (walker.nextNode()) {
+      const node = walker.currentNode;
+      for (let i = 0; i < node.length; i++) {
+        const range = document.createRange();
+        range.setStart(node, i);
+        range.setEnd(node, i + 1);
+        const rects = range.getClientRects();
+        for (const r of rects) {
+          if (r.width > 0 && r.height > 0) {
+            boxes.push({left: r.left, right: r.right, top: r.top, bottom: r.bottom});
+          }
+        }
+      }
+    }
+    return boxes;
+  };
+  const words = [...document.querySelectorAll('.word-display')];
+  const out = [];
+  for (const word of words) {
+    let minGap = 1e9, maxOverhang = -1e9, maxRtBelowRb = -1e9;
+    let previousRight = null, checked = 0;
+    for (const ruby of word.querySelectorAll('ruby')) {
+      const rb = ruby.querySelector('rb'), rt = ruby.querySelector('rt');
+      if (!rb || !rt) continue;
+      const rbChars = charBoxes(rb), rtChars = charBoxes(rt);
+      if (!rbChars.length || !rtChars.length) continue;
+      // Compare against the rb slot, not the display:ruby wrapper: in
+      // native ruby the wrapper's border box can be narrower than the
+      // expanded base slot that actually contains both rb and rt.
+      const rbBox = rb.getBoundingClientRect();
+      const first = rtChars[0], last = rtChars[rtChars.length - 1];
+      maxOverhang = Math.max(maxOverhang,
+        rbBox.left - first.left, last.right - rbBox.right);
+      const rbTop = Math.min(...rbChars.map(b => b.top));
+      const rtBottom = Math.max(...rtChars.map(b => b.bottom));
+      maxRtBelowRb = Math.max(maxRtBelowRb, rtBottom - rbTop);
+      if (previousRight !== null) {
+        minGap = Math.min(minGap, first.left - previousRight);
+      }
+      previousRight = last.right;
+      checked++;
+    }
+    const rt = word.querySelector('rt');
+    const rs = rt ? getComputedStyle(rt) : null;
+    const ruby = word.querySelector('ruby');
+    const rbs = ruby ? getComputedStyle(ruby) : null;
+    out.push({
+      id: word.id,
+      checked: checked,
+      minGap: +minGap.toFixed(2),
+      maxOverhang: +maxOverhang.toFixed(2),
+      maxRtBelowRb: +maxRtBelowRb.toFixed(2),
+      rtPosition: rs && rs.position,
+      rtDisplay: rs && rs.display,
+      rtAlign: rs && rs.textAlign,
+      rtFeature: rs && rs.fontFeatureSettings,
+      rubyDisplay: rbs && rbs.display,
+      rubyAlign: rbs && rbs.rubyAlign
+    });
+  }
+  return out;
+})()"""
+
 SENTENCE_TWO_KANA_PROBE = """(() => {
   const sent = document.querySelector('#twokanafurigana');
   if (!sent) return {found: false};
@@ -865,6 +961,59 @@ def main():
         check("sentence furigana (2 kana): rt keeps the accent colour",
               tk.get("found") and tk.get("rtColor") == tk.get("accentColor"),
               f"rt={tk.get('rtColor')} accent={tk.get('accentColor')}")
+
+    # ---- Hero furigana: adjacent per-kanji readings must never collide ----
+    # Reported v1.8.77: 勉[べん]強[きょう] rendered べん|きょう with ん and
+    # き overlapping. The old hero rule absolutely centred each rt over its
+    # rb, so a reading wider than its base painted into the neighbour.
+    # Native ruby widens the base slot instead; this probe measures painted
+    # per-character boxes (not slot boxes) across the reported word, the
+    # previous 住所 case, mixed bare-kana bases, short readings, and a long
+    # single-kanji reading.
+    hero_rt_html = (
+        "<!doctype html><html><head><meta charset=\"utf-8\">"
+        "<style>__CSS__</style></head><body>"
+        "<div class=\"card back-card\"><div class=\"card-wrapper back-card\">"
+        "<div class=\"card-container\">" + HERO_RT_FURIGANA + "</div></div></div>"
+        "<script>document.title = JSON.stringify(" + HERO_RT_PROBE + ");</script>"
+        "</body></html>"
+    )
+    hr = render_overlap(hero_rt_html.replace("__CSS__", css), 1440, 900)
+    check("hero furigana: painted-box probe returned", isinstance(hr, list) and len(hr) == 5)
+    if isinstance(hr, list) and len(hr) == 5:
+        by_id = {row.get("id"): row for row in hr}
+        for word_id, label in (
+            ("hero-rt-benkyou", "べん|きょう (reported)"),
+            ("hero-rt-juusho", "じゅう|しょ (previous report)"),
+            ("hero-rt-itametsuke", "いた|つ mixed bases"),
+            ("hero-rt-kanji", "かん|じ short readings"),
+            ("hero-rt-long", "うけたまわ long single-kanji reading"),
+        ):
+            row = by_id.get(word_id, {})
+            check(f"hero furigana ({label}): adjacent painted kana never overlap",
+                  row.get("checked", 0) >= 1
+                  and (row.get("checked", 0) < 2 or row.get("minGap", -999) >= -0.5),
+                  f"checked={row.get('checked')} minGap={row.get('minGap')}")
+            check(f"hero furigana ({label}): rt ink stays inside its ruby slot",
+                  row.get("maxOverhang", 999) <= 0.5,
+                  f"maxOverhang={row.get('maxOverhang')}")
+            # Native ruby's rt line box can dip a few px into the base's
+            # em box without the painted glyphs touching. The v1.8.66
+            # failure (rt rendered inline after rb) is a full base-height
+            # offset (~80px), so an 8px tolerance still catches it.
+            check(f"hero furigana ({label}): rt sits above its rb, never inline after it",
+                  row.get("maxRtBelowRb", 999) <= 8.0,
+                  f"maxRtBelowRb={row.get('maxRtBelowRb')}")
+            check(f"hero furigana ({label}): native ruby layout active",
+                  row.get("rubyDisplay") == "ruby"
+                  and row.get("rubyAlign") == "space-around"
+                  and row.get("rtDisplay") == "ruby-text"
+                  and row.get("rtPosition") == "static"
+                  and row.get("rtAlign") == "start"
+                  and "palt" in (row.get("rtFeature") or ""),
+                  f"ruby={row.get('rubyDisplay')}/{row.get('rubyAlign')} "
+                  f"rt={row.get('rtDisplay')}/{row.get('rtPosition')}/"
+                  f"{row.get('rtAlign')}/{row.get('rtFeature')}")
     # ---- Long-hero stacking (real initHeroStacking from the back template)
     # Short heroes keep the single row with sides hugging the word; long or
     # wide heroes stack sides below, inside the card, word still centered.
@@ -910,15 +1059,15 @@ def main():
                 check(f"long-hero stacking ({_label}): no horizontal overflow",
                       not _r.get("hOverflow", True))
 
-    # ---- Hero furigana annotation (absolute centering over each rb) ----
-    # Regression history: hero used per-kanji absolute ruby segments which
-    # center each annotation over its kanji — verified correct for
-    # 痛[いた]め 付[つ]ける (いた over 痛, つ over 付, る bare). An attempt
-    # to switch the hero rt to static native ruby broke it entirely (rt
-    # rendered inline after rb instead of above it, report v1.8.66).
-    # Absolute centering is restored: it cannot collide when each reading
-    # spans at most its base, and the reserved headroom absorbs overhang
-    # without reflow.
+    # ---- Hero furigana annotation (native ruby, no absolute overhang) ----
+    # Regression history: per-kanji absolute ruby centres each annotation
+    # over its rb, but when a reading is wider than its base the adjacent
+    # annotations paint into each other (べん|きょう, じゅう|しょ). The
+    # v1.8.66 native attempt failed only because it kept the global
+    # `ruby{display:inline-block}` / `rt{position:absolute}` defaults, so
+    # rt rendered inline after rb. The current rule supplies the missing
+    # `display:ruby` + `display:ruby-text` and uses the sentence's proven
+    # space-around/palt/start-alignment configuration.
     back_t = open(os.path.join(ROOT, "Card 1 - Back.template.anki"), encoding="utf-8").read()
     m_hero = re.search(
         r'\{\{edit:furigana:furigana\}\}', back_t
@@ -928,14 +1077,28 @@ def main():
         r'\{\{reading\}\}', back_t
     )
     check("hero no longer renders the flat reading field", m_reading is None)
+    one_line = css_early.replace("\n", " ")
     check(
-        "hero rt uses absolute centering over each rb",
-        re.search(r'\.word-display ruby rt\s*\{[^}]*position:\s*absolute[^}]*transform:\s*translateX\(-50%\)', css_early.replace("\n", " ")) is not None,
+        "hero ruby uses native display:ruby with space-around distribution",
+        re.search(
+            r"\.word-display ruby\s*\{[^}]*display:\s*ruby;[^}]*ruby-align:\s*space-around;[^}]*position:\s*static",
+            one_line,
+        ) is not None,
     )
     check(
-        "hero rt does not inherit word letter-spacing (+ halt smalls)",
-        re.search(r'\.word-display ruby rt\s*\{[^}]*letter-spacing:\s*normal', css_early.replace("\n", " ")) is not None
-        and re.search(r'font-feature-settings:[^;]*"halt" 1', css_early) is not None,
+        "hero rt uses ruby-text, static layout, start alignment, and palt",
+        re.search(
+            r"\.word-display ruby rt\s*\{[^}]*display:\s*ruby-text;[^}]*position:\s*static;"
+            r"[^}]*font-feature-settings:\s*[\"']palt[\"'](?:\s*1)?;[^}]*letter-spacing:\s*normal;[^}]*text-align:\s*start",
+            one_line,
+        ) is not None,
+    )
+    check(
+        "hero rt no longer uses absolute centering",
+        re.search(
+            r"\.word-display ruby rt\s*\{[^}]*position:\s*absolute",
+            one_line,
+        ) is None,
     )
     check(
         "no JS furigana controller (CSS-only by design)",

@@ -2587,3 +2587,9 @@ make snetence and expression a both also a bit in mobile(note that in desktop ex
 
 in 餃子ギョーザ
 why is the image indefntion not showing? fix it
+
+---
+
+can you fix this visual bug?(the ん　and the きゅ going into each other)
+the solution should be general and not hard coded tofix this issyue but create 10 others
+also add regression tests for this

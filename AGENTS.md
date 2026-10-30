@@ -90,10 +90,11 @@ Archive every new user prompt to `chat_history/opencode_prompts.txt`
 
 ### 4. Technical constraints (summaries; full rules in QUALITY.md)
 
-Zero-reflow reveal (hidden rt, hover/tap, `F`; hero absolute ruby;
-sentence native ruby at browser-default `0.5em` rt + `"palt"` small-kana
-metrics (`rt text-align: start`; sentence clamp bumped ~+11% desktop and
-mobile, mobile expression/sentence hierarchy restored ~1.9x,
+Zero-reflow reveal (hidden rt, hover/tap, `F`; hero + sentence native ruby
+with `"palt"` small-kana metrics and `rt text-align: start` — hero at
+`0.55em`, sentence at browser-default `0.5em`; a long reading expands its
+base slot instead of colliding with the next; sentence clamp bumped ~+11%
+desktop and mobile, mobile expression/sentence hierarchy restored ~1.9x,
 per-kanji distribution) ·
 native-only
 circular audio (`文`/`言葉`, sibling replay link, debounce, playback

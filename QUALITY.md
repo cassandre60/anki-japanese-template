@@ -130,25 +130,27 @@ mechanically verified*. Code implements; tests enforce.
 
 - Zero-reflow reveal: `ruby rt` is hidden with `visibility:hidden` (not
   `display:none`), shown on `:hover`/`:active`/`:focus`, and pinned by
-  `F` mode without shifting geometry. The hero uses absolute `ruby rt`
-  centred over each `rb` (the per-kanji `furigana` field). The sentence
-  follows the older templates' annotation look: native ruby at the
-  browser-default `0.5em` rt with `font-feature-settings: "palt" 1`,
-  normal line-height, and the card accent colour from the global
-  `ruby rt` rule, with `rt { text-align: start }` so grouped readings
-  like 除菌[でる] distribute over their base characters instead of
-  centring as one run at the compound boundary. Both rt properties are
-  mandatory (as of v1.8.75, measured): without palt, a reading wider
-  than its kanji run (じゅうしょ over 住所) widens the base module and
-  Chromium spreads the kanji apart ("住 所"); plain 0.33em avoids that
-  but is barely legible. `palt` renders small kana at proportional
-  (~half) advance, which keeps 5-kana readings like じゅうしょ inside
-  their base and caps the 6-kana/2-kanji class (にゅうりょく) to a
-  ~10px split — the accepted residual trade for per-kanji placement at
-  the old-template size. Start alignment is mandatory:
-  with inherited `text-align: center`, Chromium centres the annotation
-  run over the compound while the ruby slots still measure per kanji, so
-  only the painted kana reveal the bug.
+  `F` mode without shifting geometry. The hero (per-kanji `furigana`
+  field) and the sentence both use native ruby (`display:ruby` /
+  `ruby-text`, `space-around` distribution, `palt` small-kana metrics,
+  `rt { text-align: start }`), so each reading sits over its base
+  characters. A reading wider than its kanji expands that base slot
+  instead of painting into the neighbouring annotation (the old hero
+  absolute centring collided on べん|きょう and じゅう|しょ). The hero
+  keeps its larger `0.55em` rt scale; the sentence follows the older
+  templates' browser-default `0.5em` look with the card accent colour
+  from the global `ruby rt` rule. Both rt properties are mandatory (as
+  of v1.8.75, measured): without palt, a reading wider than its kanji
+  run (じゅうしょ over 住所) widens the base module and Chromium spreads
+  the kanji apart ("住 所"); plain 0.33em avoids that but is barely
+  legible. `palt` renders small kana at proportional (~half) advance,
+  which keeps 5-kana readings like じゅうしょ inside their base and caps
+  the 6-kana/2-kanji class (にゅうりょく) to a ~10px split — the
+  accepted residual trade for per-kanji placement at the old-template
+  size. Start alignment is mandatory: with inherited `text-align:
+  center`, Chromium centres the annotation run over the compound while
+  the ruby slots still measure per kanji, so only the painted kana
+  reveal the bug.
   Sentence type scale (v1.8.76): desktop bumped ~+11% at 1440+ and ~+6%
   mid-range to `clamp(1.25rem, 1.65vw + 0.6rem, 2.05rem)`, mobile bumped
   to `clamp(1.15rem, 3.9vmin + 0.55rem, 2rem)`; the mobile

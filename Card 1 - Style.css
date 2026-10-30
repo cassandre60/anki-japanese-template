@@ -4,7 +4,7 @@
  * (Tokyo Night Dark / Aki Paper Light)
  *
  * Source & documentation: https://github.com/cassandre60/anki-japanese-template
- * Version: v1.8.77 — auto-bumped by finish.sh; matches the GitHub release tag
+ * Version: v1.8.78 — auto-bumped by finish.sh; matches the GitHub release tag
  *
  * Front = pure retrieval surface (sentence / word / audio only).
  * Back = strong hierarchy: target → reading → meaning → context →
@@ -578,21 +578,41 @@
   overflow-wrap: anywhere;
 }
 
-/* Furigana on Back Card: hero uses ABSOLUTE ruby layout (the original,
-   working approach). Each rt is centered over its rb — verified correct
-   for 痛[いた]め 付[つ]ける (いた over 痛, つ over 付, る bare).
-   Only when a reading is much wider than its base does an absolute rt
-   overhang slightly (e.g. じゅう over 住); the reserved headroom absorbs
-   that without reflow. */
+/* Furigana on Back Card: hero uses NATIVE ruby layout, exactly like the
+   sentence in §8. The browser pairs each rt with its rb and, when a
+   reading is wider than its base (べん over 勉, きょう over 強), widens
+   that base slot instead of letting the adjacent annotation run
+   overlap it. Absolute per-rb centering cannot do this: it keeps the
+   bases fixed and paints the overhanging kana into the neighbour.
+
+   The display overrides are mandatory. The global `ruby` is
+   `display:inline-block` and the global `rt` is absolute (the
+   zero-reflow hover rule); without `display:ruby` / `display:ruby-text`
+   the rt would stay inline after the base (the v1.8.66 failure). With
+   them, the hero is a normal ruby run: reserved headroom keeps it inside
+   the line box, and `palt` + start alignment keep small kana compact and
+   distributed per base character. No JS, no per-word tuning. */
+.word-display ruby {
+  display: ruby;
+  ruby-align: space-around;
+  position: static;
+  line-height: normal;
+}
+
 .word-display ruby rt {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  bottom: 100%;
+  display: ruby-text;
+  position: static;
+  left: auto;
+  transform: none;
+  bottom: auto;
   visibility: visible;
   opacity: 1;
+  font-size: 0.55em;
+  font-feature-settings: "palt" 1;
+  line-height: normal;
+  margin-bottom: 0;
   letter-spacing: normal;
-  font-feature-settings: "halt" 1;
+  text-align: start;
 }
 
 /* Frequency badge: 5-star scale & progress track */

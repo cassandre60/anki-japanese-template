@@ -123,14 +123,14 @@ off-screen context to be solvable is a bad mine and should be re-mined.
   below it.
 - Zero-reflow reveal: hidden furigana is `visibility:hidden` (not
   `display:none`), so hover/tap and `F` mode never shift geometry. The
-  hero uses absolute ruby centred over each `rb`; the sentence follows the
-  older templates' annotation look: native `50%` ruby text in the card
-  accent colour with start-aligned `rt`, so each grouped reading
-  sits over its base characters (with centred `rt`, Chromium paints the
-  kana as one block over the compound even though the ruby slots measure
-  per kanji). The sentence's overall type scale is unchanged for now.
-  Long grouped readings may widen their base, as in the older templates.
-  `F` toggles full-card furigana on the back.
+  hero and sentence both use native ruby (`display:ruby` / `ruby-text`,
+  `space-around` distribution, `palt` small-kana metrics, start-aligned
+  `rt`), so each reading sits over its base characters. A reading wider
+  than its kanji expands that base slot instead of painting into the
+  neighbouring annotation; the hero keeps its larger `0.55em` rt scale,
+  while the sentence follows the older templates' `50%` look in the card
+  accent colour. Long grouped readings may widen their base, as in the
+  older templates. `F` toggles full-card furigana on the back.
 
 - Native-only audio (delegate to Anki replay link, re-tap debounce,
   playback indicator pulse — never HTML5 `Audio`); `R` is Anki-owned
