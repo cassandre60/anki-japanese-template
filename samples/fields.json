@@ -1,25 +1,125 @@
 {
   "model": "Japanese Note type (Sentence card by Default)",
   "fields": [
-    "Expression",
-    "Definition",
-    "Kanji Notes",
-    "Source",
-    "Sentence",
-    "Sentence (furigana)",
-    "Sentence Audio",
-    "Translation",
-    "Picture",
-    "context",
-    "Notes",
-    "Word Audio",
-    "Pitch Accent",
-    "furigana",
-    "reading",
-    "cloze-prefix",
-    "cloze-body",
-    "cloze-suffix",
-    "Frequency",
-    "Extended definition"
+    {
+      "name": "Expression",
+      "font": "Noto Sans",
+      "size": 30,
+      "description": "Term expressed (without inflections ! ie conjugation of verbs) using maximal kanji (learned the hard way). If kanji expression is not available, kana is used. This is the best field to put first, for handling search and duplicates."
+    },
+    {
+      "name": "Definition",
+      "font": "Noto Sans CJK JP",
+      "size": 20,
+      "description": ""
+    },
+    {
+      "name": "Kanji Notes",
+      "font": "Noto Sans CJK JP",
+      "size": 20,
+      "description": "Empty by default. This field will contain any info about the kanji(s) of the expression you deem necessary: for example radicals, mnemonics, meaning of the kanji, jukugo, readings etc, for kanji n°1 to 4"
+    },
+    {
+      "name": "Source",
+      "font": "Noto Sans CJK JP",
+      "size": 10,
+      "description": "URL, show name, book name, etc"
+    },
+    {
+      "name": "Sentence",
+      "font": "Noto Sans JP",
+      "size": 30,
+      "description": ""
+    },
+    {
+      "name": "Sentence (furigana)",
+      "font": "Noto Sans JP",
+      "size": 30,
+      "description": ""
+    },
+    {
+      "name": "Sentence Audio",
+      "font": "Noto Sans JP",
+      "size": 10,
+      "description": ""
+    },
+    {
+      "name": "Translation",
+      "font": "Noto Sans JP",
+      "size": 20,
+      "description": "maybe also include a literal english translation"
+    },
+    {
+      "name": "Picture",
+      "font": "Noto Sans JP",
+      "size": 10,
+      "description": ""
+    },
+    {
+      "name": "context",
+      "font": "Liberation Sans",
+      "size": 20,
+      "description": "The whole paragrah/diologue. Typically in books, added manually"
+    },
+    {
+      "name": "Notes",
+      "font": "Noto Sans CJK JP",
+      "size": 20,
+      "description": "everthing else is here, grammar, other words defintions"
+    },
+    {
+      "name": "Word Audio",
+      "font": "Noto Sans JP",
+      "size": 10,
+      "description": ""
+    },
+    {
+      "name": "Pitch Accent",
+      "font": "Noto Sans JP",
+      "size": 20,
+      "description": ""
+    },
+    {
+      "name": "furigana",
+      "font": "Noto Sans JP",
+      "size": 20,
+      "description": "I try to use the plain formatting for furigana as much as possible since it is seems more intuitive for me"
+    },
+    {
+      "name": "reading",
+      "font": "Noto Sans JP",
+      "size": 20,
+      "description": "Kana reading for the term, or empty for terms where the expression is the reading. This field should not contain any kanji."
+    },
+    {
+      "name": "cloze-prefix",
+      "font": "Liberation Sans",
+      "size": 20,
+      "description": ""
+    },
+    {
+      "name": "cloze-body",
+      "font": "Noto Sans CJK JP",
+      "size": 20,
+      "description": "Original inflected term as it appeared before being reduced to dictionary form by Yomitan."
+    },
+    {
+      "name": "cloze-suffix",
+      "font": "Liberation Sans",
+      "size": 20,
+      "description": ""
+    },
+    {
+      "name": "Frequency",
+      "font": "Noto Sans JP",
+      "size": 10,
+      "description": "Frequency of the cloze body"
+    },
+    {
+      "name": "Extended definition",
+      "font": "Noto Sans CJK JP",
+      "size": 20,
+      "description": "Here we put the full Yomitan defintionin japanese"
+    }
   ]
 }

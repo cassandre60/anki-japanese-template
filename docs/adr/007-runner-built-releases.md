@@ -17,18 +17,30 @@ desktop the only machine able to produce a release. Two problems surfaced:
 ## Decision
 
 1. **Sample content becomes repo content.** `fetch_sample_deck.py` derives
-   `samples/notes.json` + `samples/fields.json` + `samples/media/` from the
-   live collection via Anki-Connect — machine-derived, never hand-written
-   (rule-0 spirit: derive, don't guess). `samples/fields.json` is the one
-   committed field-list snapshot; tests validate it against the field
-   references in the templates so it can never silently drift.
+   `samples/notes.json` + `samples/fields.json` + `samples/media.json` +
+   `samples/media/` from the live collection via Anki-Connect —
+   machine-derived, never hand-written (rule-0 spirit: derive, don't
+   guess). `samples/fields.json` snapshots the field names plus per-field
+   font/size/description (the metadata a headless builder would otherwise
+   have to guess); tests validate it against the field references in the
+   templates so it can never silently drift.
 2. **Headless stdlib builder.** `build_sample_apkg.py` builds
    `dist/anki-japanese-template.apkg` with stdlib only (`sqlite3` +
-   `zipfile`): legacy `collection.anki2` (schema 18), note type composed
-   from the repo's `Card 1 - Front/Back.template.anki` +
-   `Card 1 - Style.css` + the committed field list, notes/cards/media from
-   `samples/`. The `anki` pip package is rejected: PRODUCT.md mandates
-   stdlib-only tooling.
+   `zipfile`): a true Anki 2.0-format package — schema-11
+   `collection.anki2`, numeric media entries, `media` index, and no `meta`
+   file (current Anki infers exactly this legacy shape when `meta` is
+   absent; verified against rslib `import_export/package/meta.rs` and
+   Anki's own legacy roundtrip test). The note type is composed from the
+   repo's `Card 1 - Front/Back.template.anki` + `Card 1 - Style.css` +
+   the committed field snapshot; notes/cards/media from `samples/`. The
+   `anki` pip package is rejected: PRODUCT.md mandates stdlib-only tooling.
+   Identifiers are sha-derived from stable names (model/field/template/deck
+   ids), note guids are content hashes, and note mtimes encode the CSS
+   version stamp — so a later release re-imports as an update instead of
+   duplicating the note type (the modern importer matches notetypes by id
+   and notes by guid). Ids deliberately do not match the maintainer's live
+   collection: importing a release into a profile that already has the live
+   note type adds a renamed duplicate — releases are for fresh profiles.
 3. **CI publishes.** A release workflow (`release.yml`, tag push `v*`)
    runs `./verify`, builds the apkg, and publishes the GitHub release
    with the asset.
@@ -46,9 +58,10 @@ commit, apkg ships as a Release asset never in the repo.
 
 Releases no longer depend on the desktop's network; runners build and
 publish them like any other app in the maintainer's portfolio. The repo
-gains ~6 MB of committed sample media (already public via past release
+gains ~7 MB of committed sample media (already public via past release
 assets). The builder's legacy-format output must be import-validated
 against current Anki in a scratch profile; documented fallback if legacy
-import is refused: also emit an uncompressed `collection.anki21` twin
-(schema 21). `release_apkg.py`'s Anki-Connect export path is retired once
-the builder + workflow are validated end-to-end.
+import is ever refused: also emit an uncompressed `collection.anki21`
+twin (Version::Legacy2 — still schema 11, a name the importer prefers).
+`release_apkg.py`'s Anki-Connect export path is retired once the builder +
+workflow are validated end-to-end.

@@ -5,8 +5,10 @@ fetch_sample_deck.py (ADR 007 / T18): the release apkg is built by
 build_sample_apkg.py from repo files only; this script is the ONLY writer
 of those files. It derives (never hand-edits):
 
-  samples/fields.json   ordered field names of the note type (modelFieldNames)
-  samples/notes.json    the sample deck's notes: guid, tags, fields by name
+  samples/fields.json   note-type field snapshot (names + font/size/
+                        description) of the note type (modelFieldNames/
+                        modelFieldFonts/modelFieldDescriptions)
+  samples/notes.json    the sample deck's notes: tags, fields by name
   samples/media/        every media file referenced by those fields
 
 Run only when the maintainer wants to refresh the shipped sample deck;
@@ -15,6 +17,7 @@ sorted by guid, media sorted by filename, JSON indented with stable key
 order. Notes are resolved through the deck's CARDS (findCards → cardsInfo),
 so the shipped content always matches exactly what the deck exports.
 """
+
 import base64
 import json
 import os
@@ -28,6 +31,7 @@ DECK_NAME = "My Life Decks::Japanese::anki-japanese-template"
 MODEL_NAME = "Japanese Note type (Sentence card by Default)"
 SAMPLES_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "samples")
 MEDIA_DIR = os.path.join(SAMPLES_DIR, "media")
+
 
 # The deck name contains hyphens; Anki's search lexer reads bare hyphens as
 # negation (observed: an escaped query is required, otherwise 0 results).
@@ -57,11 +61,17 @@ def media_refs_in(field_value: str):
     refs = set()
     for match in re.findall(r"\[sound:([^\]]+)\]", field_value):
         refs.add(match.strip())
-    for match in re.findall(r'<img[^>]*\ssrc=["\']([^"\']+)["\']', field_value, re.IGNORECASE):
+    for match in re.findall(
+        r'<img[^>]*\ssrc=["\']([^"\']+)["\']', field_value, re.IGNORECASE
+    ):
         refs.add(match.strip())
     # Media references are bare filenames inside collection.media; skip
     # inline data URIs and remote URLs (nothing to fetch).
-    return {r for r in refs if r and not r.startswith(("data:", "http://", "https://")) and "/" not in r}
+    return {
+        r
+        for r in refs
+        if r and not r.startswith(("data:", "http://", "https://")) and "/" not in r
+    }
 
 
 def main() -> int:
@@ -76,22 +86,46 @@ def main() -> int:
     if models != {MODEL_NAME}:
         sys.exit(f"ERROR: unexpected note type(s) in sample deck: {sorted(models)}")
     field_names = post("modelFieldNames", {"modelName": MODEL_NAME})
+    # Per-field metadata the builder needs to compose the note type faithfully
+    # (without it the release would ship default fonts and empty descriptions).
+    # sticky/rtl/plainText are NOT exposed by this Anki-Connect build; the live
+    # model's dumped JSON shows sticky=false and rtl=false for all fields, so
+    # build_sample_apkg.py composes those as false (documented limitation).
+    fonts = post("modelFieldFonts", {"modelName": MODEL_NAME})  # {name: {font, size}}
+    descriptions = post("modelFieldDescriptions", {"modelName": MODEL_NAME})
+    if len(descriptions) != len(field_names):
+        sys.exit("ERROR: description list does not match the field list")
+    fields_meta = [
+        {
+            "name": name,
+            "font": fonts[name]["font"],
+            "size": fonts[name]["size"],
+            "description": descriptions[index],
+        }
+        for index, name in enumerate(field_names)
+    ]
 
     notes = []
     refs = set()
     for info in notes_raw:
-        fields = {name: (value["value"] if isinstance(value, dict) else value)
-                  for name, value in info["fields"].items()}
+        fields = {
+            name: (value["value"] if isinstance(value, dict) else value)
+            for name, value in info["fields"].items()
+        }
         if set(fields) != set(field_names):
-            sys.exit(f"ERROR: note {info['noteId']} fields do not match the model's field list")
+            sys.exit(
+                f"ERROR: note {info['noteId']} fields do not match the model's field list"
+            )
         for value in fields.values():
             refs |= media_refs_in(value)
         tags_raw = info["tags"]
         tags = tags_raw if isinstance(tags_raw, list) else tags_raw.split()
-        notes.append({
-            "tags": tags,
-            "fields": fields,
-        })
+        notes.append(
+            {
+                "tags": tags,
+                "fields": fields,
+            }
+        )
     # guids are NOT derived here: this Anki-Connect build does not expose
     # them, and repo-derived fixtures should not depend on live-collection
     # internals anyway. build_sample_apkg.py assigns deterministic
@@ -121,12 +155,14 @@ def main() -> int:
     missing.sort()
 
     with open(os.path.join(SAMPLES_DIR, "media.json"), "w", encoding="utf-8") as f:
-        json.dump({"files": fetched, "missing": missing}, f, ensure_ascii=False, indent=2)
+        json.dump(
+            {"files": fetched, "missing": missing}, f, ensure_ascii=False, indent=2
+        )
         f.write("\n")
 
     model = {
         "model": MODEL_NAME,
-        "fields": field_names,
+        "fields": fields_meta,
     }
     with open(os.path.join(SAMPLES_DIR, "fields.json"), "w", encoding="utf-8") as f:
         json.dump(model, f, ensure_ascii=False, indent=2)
@@ -135,9 +171,13 @@ def main() -> int:
         json.dump(notes, f, ensure_ascii=False, indent=2)
         f.write("\n")
 
-    total = sum(os.path.getsize(os.path.join(MEDIA_DIR, n)) for n in os.listdir(MEDIA_DIR))
-    print(f"Sample deck: {len(notes)} notes, {len(field_names)} fields, "
-          f"{len(refs)} media files ({total / 1e6:.1f} MB) -> {SAMPLES_DIR}")
+    total = sum(
+        os.path.getsize(os.path.join(MEDIA_DIR, n)) for n in os.listdir(MEDIA_DIR)
+    )
+    print(
+        f"Sample deck: {len(notes)} notes, {len(field_names)} fields, "
+        f"{len(refs)} media files ({total / 1e6:.1f} MB) -> {SAMPLES_DIR}"
+    )
     return 0
 
 

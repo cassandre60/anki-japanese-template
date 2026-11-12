@@ -41,6 +41,7 @@ run `./verify`; CI re-runs `./verify` after every push.
 | Muted text meets WCAG AA in both themes; hint bar/source footer carry no opacity multiplier; frequency stars, Z/X/C labels, and small audio label keep a 12px floor | `tests/test_readability.py` — stdlib CSS token/rule parser; no browser |
 | Listening resolver behavior: classic audio-only fields and `#listening` tag activate the audio front; gloss/no-tag, no-audio, and Frequency-legacy shapes keep the sentence front | `tests/test_front_modes.py` — extracts the real resolver from the front template and runs 6 state harnesses in headless Chrome; skipped gracefully when Chrome is absent |
 | Clean-environment pass, no forgotten files/deps | CI (`.github/workflows/verify.yml`) runs `./verify` |
+| Sample-deck fixtures are derived, complete, and deterministic; release apkg is schema-11 legacy format with byte-equal templates/CSS, content-hash guids, version-encoded mtimes, and byte-identical rebuilds | `tests/test_sample_apkg.py` (fixture contract + independent artifact validation via the real builder CLI) + `build_sample_apkg.py --check` (builder self-check) |
 | Every UI element collapses when its field is empty | `tests/test_templates.py` §10 — conditional-enclosure parser over Front/Back, `:has()` shell-guard checks, JS self-removal checks |
 
 ## The gate
