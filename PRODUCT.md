@@ -83,7 +83,8 @@ off-screen context to be solvable is a bad mine and should be re-mined.
   sentence; legacy Frequency-only → sentence; pure listening cards (no
   Definition, no Extended-definition, no Frequency, usable audio present)
   → large circular audio button; `#listening` + no usable audio falls
-  back to sentence; cloze trio rebuild when Sentence lacks `<b>`; mature
+  back to sentence; cloze trio rebuild when Sentence lacks `<b>` and the
+  trio is not already contained in the rendered sentence; mature
   interval-gated word-only front. Normal cards NEVER render or play audio
   on the front. The sentence front is the universal fallback for every
   failure path.
@@ -159,7 +160,8 @@ off-screen context to be solvable is a bad mine and should be re-mined.
 
 - New Anki note-type fields, add-ons, or Python-at-review solutions.
 - Multi-note-type theming system or generic card framework.
-- Enterprise release management (solo `finish.sh` flow is enough).
+- Enterprise release management (releases are runner-built per ADR 007:
+  the maintainer pushes a tag, CI builds and publishes the apkg).
 - Server/cloud sync, collaboration, analytics.
 - English→Japanese production mode, custom grading UI, confidence
   buttons, learning-mode systems beyond context/word/listening.

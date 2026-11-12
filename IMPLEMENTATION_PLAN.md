@@ -172,6 +172,14 @@ T2/T3 are parallelizable; T4 needs T2; T5 needs T3.
   (291/291 green, zero fallout). Field-verified by maintainer on desktop +
   AnkiDroid (2026-09-26).
 
+- **T18 — Runner-built releases (ADR 007).** Sample deck (10 cards + media)
+  as repo files (`fetch_sample_deck.py` → `samples/`, derived from the live
+  collection — never hand-written), committed field-list snapshot validated
+  against template references, stdlib headless builder
+  (`build_sample_apkg.py`, sqlite3+zipfile, structural tests), `release.yml`
+  (tag → verify → build → publish), `finish.sh` re-scoped to
+  verify → stamp → sync → commit → push → tag. Status: IN PROGRESS.
+
 ## Roadmap (evolution loop input, not committed scope)
 
 - R1: extra compactor fixtures if Yomitan markup drifts.

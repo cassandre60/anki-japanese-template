@@ -20,7 +20,8 @@ compact informative back, and a one-command sync → export → release loop.
 ## Included capabilities
 
 - Front: pure retrieval surface — sentence / Expression fallback,
-  Frequency-legacy sentence path, cloze-trio rebuild, pure audio-only listening
+  Frequency-legacy sentence path, cloze-trio rebuild (never when the trio
+  is already contained in the sentence), pure audio-only listening
   cards (usable audio required; `#listening` without audio falls back to
   sentence), Mature Word Mode (interval-gated, desktop-only AnkiConnect
   content search — one fallback-only path for reviewer and Browse
