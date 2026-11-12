@@ -180,8 +180,11 @@ T2/T3 are parallelizable; T4 needs T2; T5 needs T3.
   sha-derived ids, content-hash guids, version-encoded mtimes, byte-identical
   rebuilds; 36-check suite + `--check` wired into `./verify`),
   `release.yml` (tag push → verify → build → publish), `finish.sh`
-  re-scoped to verify → stamp → sync → build → commit → push main → tag
-  (publishing is CI-owned; §9 contract tests updated). Status: IN PROGRESS
+  re-scoped to verify → stamp → sync → commit → push main → tag
+  (publishing is CI-owned; no local artifact build — `./verify` already
+  builds and validates the apkg, and the scratch-profile import check is a
+  one-time gate for the first CI release; §9 contract tests updated).
+  Status: IN PROGRESS
   — remaining: maintainer import-validates a built apkg in a scratch
   profile, then the first tag fires the CI release end-to-end;
   `release_apkg.py` retired after that.

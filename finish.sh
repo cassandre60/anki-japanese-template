@@ -2,13 +2,13 @@
 # =============================================================================
 # finish.sh — single-command post-change routine.
 #
-# Run this at the end of ANY template change instead of remembering 5 steps:
+# Run this at the end of ANY template change instead of remembering 4 steps:
 #   ./finish.sh "<commit message>"
 #
 # Flags:
-#   --local          Review mode: sync + build + commit only. Skips the stamp,
-#                    push, and tag. Use while iterating; finish the batch with
-#                    a full run (no flag) to release.
+#   --local          Review mode: sync + commit only. Skips the stamp, push,
+#                    and tag. Use while iterating; finish the batch with a
+#                    full run (no flag) to release.
 #   --minor          Bump the MINOR version segment (v1.x.0) instead of the
 #                    patch segment. Use for multi-feature releases.
 #   --prompt "text"  Append the user prompt to chat_history/opencode_prompts.txt
@@ -17,25 +17,24 @@
 #
 #   It executes, in order:
 #   0. ./verify — local quality gate (compactor CSS + template invariants
-#                 + builder + layout; skipped silently when tests/ is absent)
+#                 + builder + layout; skipped silently when tests/ is absent).
+#                 This already builds and validates the release apkg.
 #   1. version stamp  — compute the next release tag and rewrite the CSS
 #                        header Version: line (full runs only; the stamp is
-#                        what Anki receives in step 2 and what the builder
-#                        embeds in the artifact, so it never lags)
+#                        what Anki receives in step 2, so it never lags)
 #   2. sync_to_anki.py — push templates+CSS into Anki via Anki-Connect
 #                        (also snapshots live Anki state into backups/)
-#   3. build_sample_apkg.py — build dist/*.apkg from repo files (ADR 007).
-#                        Import-validate this artifact in a scratch Anki
-#                        profile BEFORE pushing the tag (step 5).
-#   4. git commit     — stage everything (incl. chat_history log) & commit
-#   5. push main + tag — push the commit to origin/main, then push the tag.
-#                        The tag push triggers release.yml: CI re-runs
+#   3. git commit     — stage everything (incl. chat_history log) & commit
+#   4. push main + tag — push the commit to origin/main, then push the tag.
+#                        The tag push triggers release.yml: CI runs
 #                        ./verify, builds the apkg from the tagged commit,
 #                        and publishes the GitHub release (ADR 007 — the
-#                        desktop never uploads the asset).
+#                        desktop never builds or uploads the release asset).
 #
-#   Publishing is CI-owned: this script never creates a GitHub release and
-#   never uploads the apkg.
+#   Publishing is CI-owned: this script never builds the artifact itself,
+#   never creates a GitHub release, and never uploads the apkg. To build
+#   the artifact locally (e.g. the one-time scratch-profile import check),
+#   run `python3 build_sample_apkg.py` on demand.
 #
 # Any failure stops the chain with a clear message (set -e). Requires: Anki
 # running with Anki-Connect. (gh is only used by release.yml on the runner.)
@@ -56,7 +55,7 @@ while [ $# -gt 0 ]; do
     --minor)  BUMP_KIND=minor ;;
     --prompt) shift; PROMPT_TEXT="${1:?--prompt requires a text argument}" ;;
     -h|--help)
-      sed -n '2,32p' "$0"; exit 0 ;;
+      sed -n '2,31p' "$0"; exit 0 ;;
     *)
       if [ -z "$COMMIT_MSG" ]; then
         COMMIT_MSG="$1"
@@ -82,7 +81,7 @@ fi
 
 # ---------- step 0: regression tests (delegates to ./verify, the local gate) ----------
 if [ -d tests ]; then
-  echo "==> [0/5] Running regression tests (./verify)"
+  echo "==> [0/4] Running regression tests (./verify)"
   ./verify
 fi
 
@@ -91,7 +90,7 @@ fi
 # last released version and the working tree is not polluted.
 NEW_TAG=""
 if [ "$LOCAL" -eq 0 ]; then
-  echo "==> [1/5] Stamping version"
+  echo "==> [1/4] Stamping version"
   git fetch origin "refs/tags/*:refs/tags/*" --quiet
   # Auto-bump version from the latest existing tag (v<major>.<minor>.<patch>)
   LATEST_TAG="$(git tag --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -1 || true)"
@@ -109,8 +108,8 @@ PY
 )"
   fi
   # Rewrite the Version: line in the CSS header comment. The stamp is what
-  # step 2 pushes to Anki, what step 4 commits, and what the builder encodes
-  # into the artifact — tag, tree, live template and apkg can never disagree.
+  # step 2 pushes to Anki and what step 3 commits — tag, tree and the live
+  # template can never disagree.
   python3 - "$NEW_TAG" <<'PY'
 import re, sys
 tag = sys.argv[1]
@@ -126,13 +125,10 @@ if n and new != css:
 PY
 fi
 
-echo "==> [2/5] Syncing templates to Anki (Anki-Connect)"
+echo "==> [2/4] Syncing templates to Anki (Anki-Connect)"
 python3 sync_to_anki.py
 
-echo "==> [3/5] Building release apkg from repo files (validate in a scratch profile before step 5)"
-python3 build_sample_apkg.py
-
-echo "==> [4/5] Committing changes"
+echo "==> [3/4] Committing changes"
 git add -A
 CHANGED=0
 if git diff --cached --quiet; then
@@ -144,7 +140,7 @@ fi
 
 if [ "$LOCAL" -eq 1 ]; then
   echo ""
-  echo "Local run complete (synced, built, committed)."
+  echo "Local run complete (synced, committed)."
   exit 0
 fi
 
@@ -153,11 +149,11 @@ if [ "$CHANGED" -eq 0 ]; then
   exit 0
 fi
 
-echo "==> [5/5] Pushing main, then tag $NEW_TAG (CI builds and publishes the release)"
+echo "==> [4/4] Pushing main, then tag $NEW_TAG (CI builds and publishes the release)"
 git push origin main
 git tag "$NEW_TAG"
 git push origin "$NEW_TAG"
 
 echo ""
-echo "All done: synced, built, committed, pushed; release.yml is building $NEW_TAG."
+echo "All done: synced, committed, pushed; release.yml is building $NEW_TAG."
 echo "Watch: gh run watch (or the Actions tab). The release appears when the run completes."

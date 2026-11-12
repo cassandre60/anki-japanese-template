@@ -46,8 +46,11 @@ desktop the only machine able to produce a release. Two problems surfaced:
    with the asset.
 4. **finish.sh keeps the inherently-local parts.** verify → version stamp →
    `sync_to_anki.py` (with snapshots) → commit → push main → tag push.
-   The maintainer import-validates a locally built apkg in a scratch
-   profile before tagging.
+   It never builds or uploads the artifact: `./verify` already builds and
+   structurally validates the apkg on every run, and CI rebuilds it for
+   publishing. The scratch-profile import check is a ONE-TIME gate for the
+   first CI-built release only (artifact built on demand via
+   `python3 build_sample_apkg.py`) — not a per-release ritual.
 
 This amends ADR 004: the publisher moves to CI and the artifact source
 moves from the live collection to repo files. ADR 004's invariants are

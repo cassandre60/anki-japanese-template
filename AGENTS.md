@@ -69,19 +69,21 @@ After **every** template/CSS modification, finish with exactly one command:
 
 ```bash
 ./finish.sh "<semantic commit message>"
-# --local: sync + build + commit only · --minor: bump v1.x.0
+# --local: sync + commit only · --minor: bump v1.x.0
 # --prompt "text": archive prompt (rule 3) before anything runs
 ```
 
-Chain (stops on first failure): `0.` `./verify` (side-effect-free gate) →
+Chain (stops on first failure): `0.` `./verify` (side-effect-free gate —
+it already builds and validates the release apkg) →
 `1.` version stamp → `2.` `sync_to_anki.py` (pre-sync snapshot to gitignored
-`backups/<timestamp>/`) → `3.` `build_sample_apkg.py` (builds
-gitignored `dist/*.apkg` from repo files — import-validate it in a scratch
-Anki profile before step 5) → `4.` commit → `5.` push main → push tag.
-The tag push triggers `release.yml`: CI re-runs `./verify`, rebuilds the
-apkg, and publishes the GitHub release (ADR 007 — the desktop never
-uploads the asset). The apkg ships as a Release asset, never in the repo.
-Do not skip, reorder, or substitute steps.
+`backups/<timestamp>/`) → `3.` commit → `4.` push main → push tag.
+The tag push triggers `release.yml`: CI runs `./verify`, builds the apkg,
+and publishes the GitHub release (ADR 007 — the desktop never builds or
+uploads the asset; the apkg is for other installers, the maintainer's Anki
+is fed by the sync step). Build the artifact locally only on demand
+(`python3 build_sample_apkg.py`, e.g. the one-time scratch-profile import
+check for the first CI release). The apkg ships as a Release asset, never
+in the repo. Do not skip, reorder, or substitute steps.
 
 ### 3. Prompt archiving
 

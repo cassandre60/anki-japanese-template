@@ -153,7 +153,7 @@ sync_to_anki.py         → snapshot backups/<ts>/, push Front/Back/CSS
 fetch_sample_deck.py    → derive samples/ (release fixtures) from the live deck
 build_sample_apkg.py    → build dist/*.apkg from repo files (schema-11 legacy)
 verify                  → local quality gate (tests only, no side effects)
-finish.sh               → verify → stamp → sync → build → commit → push main → push tag
+finish.sh               → verify → stamp → sync → commit → push main → push tag
 release.yml             → on tag push: verify → build apkg → publish GitHub release
 release_apkg.py         → retired Anki-Connect exporter (pending removal after E2E)
 tests/                  → test_compactor.py + test_templates.py

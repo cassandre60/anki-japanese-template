@@ -479,9 +479,8 @@ def main():
           and finish_code.index("git tag \"$NEW_TAG\"") < finish_code.index('git push origin "$NEW_TAG"'))
     check("finish.sh: verify runs before version stamp (step 0 before step 1)",
           finish.index("./verify") < finish.index("NEW_TAG="))
-    check("finish.sh: builds the apkg locally for scratch-profile validation",
-          "python3 build_sample_apkg.py" in finish_code
-          and "release_apkg.py" not in finish_code)
+    check("finish.sh: no local apkg build or publish steps (builder lives in ./verify and CI)",
+          "build_sample_apkg" not in finish_code and "release_apkg" not in finish_code)
     # release.yml must gate the artifact: verify → build → publish, tag-triggered.
     release_yml = open(os.path.join(ROOT, ".github/workflows/release.yml"),
                        encoding="utf-8").read()
