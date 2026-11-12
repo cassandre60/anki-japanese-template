@@ -185,9 +185,13 @@ T2/T3 are parallelizable; T4 needs T2; T5 needs T3.
   builds and validates the apkg, and the scratch-profile import check is a
   one-time gate for the first CI release; §9 contract tests updated).
   Status: IN PROGRESS
-  — remaining: maintainer import-validates a built apkg in a scratch
-  profile, then the first tag fires the CI release end-to-end;
-  `release_apkg.py` retired after that.
+  — remaining: first `./finish.sh` release (pushes the pending commits and
+  fires release.yml as v1.8.80); then the ONE-TIME artifact check,
+  agent-runnable without Anki: download the CI asset, rebuild from the tag
+  in a temp worktree, confirm byte-identical, re-run structural
+  validation; optionally one human scratch-profile import as belt-and-
+  braces; delete the stuck v1.8.79 draft (its tag predates release.yml, so
+  CI can never publish it); `release_apkg.py` retired after that.
 
 ## Roadmap (evolution loop input, not committed scope)
 

@@ -2625,3 +2625,6 @@ ok
 ---
 go
 ---
+Optional but recommended once: you can downloadthe generatedreleasefile and check it yourslef, once
+all done? safe toclose?
+---
