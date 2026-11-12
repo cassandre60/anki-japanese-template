@@ -34,9 +34,12 @@ jobs:
           TAG: ${{ github.ref_name }}
           COMMIT: ${{ github.sha }}
         run: |
+          notes=$(mktemp)
+          printf '%s\n\n%s\n' \
+            "Automated release for $TAG (commit $COMMIT), built by CI from the tagged commit." \
+            "Install: import the .apkg in Anki, then delete the sample cards — the note type is retained." \
+            > "$notes"
           gh release create "$TAG" dist/anki-japanese-template.apkg \
             --title "$TAG" \
-            --notes "Automated release for $TAG (commit $COMMIT), built by CI from the tagged commit.
-
-Install: import the .apkg in Anki, then delete the sample cards — the note type is retained." \
+            --notes-file "$notes" \
             --latest

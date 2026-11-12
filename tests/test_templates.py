@@ -491,6 +491,25 @@ def main():
           < release_yml.index("gh release create"))
     check("release.yml: publishes the built apkg as the release asset",
           re.search(r'gh release create "\$TAG" dist/anki-japanese-template\.apkg', release_yml) is not None)
+    # A multi-line shell string whose continuation line is less-indented than
+    # the run block terminates the block scalar and leaks a flush-left key at
+    # YAML top level. GitHub rejects the whole file as an invalid workflow
+    # (observed 2026-11-12: startup-failure runs with zero jobs on both the
+    # main push and the tag push). Guard: every column-0 mapping key in every
+    # workflow file must belong to the GitHub Actions top-level schema.
+    ACTIONS_TOP_LEVEL = frozenset(
+        ("name", "on", "true", "permissions", "env", "defaults",
+         "concurrency", "run-name", "jobs"))
+    workflows = sorted(os.listdir(os.path.join(ROOT, ".github", "workflows")))
+    for wf in workflows:
+        if not wf.endswith(".yml"):
+            continue
+        wf_text = open(os.path.join(ROOT, ".github", "workflows", wf),
+                       encoding="utf-8").read()
+        col0_keys = re.findall(r"^([A-Za-z_][A-Za-z0-9_-]*):", wf_text, re.M)
+        check(f"{wf}: top-level keys stay inside the Actions schema "
+              f"(no leak from an indented shell block)",
+              all(k in ACTIONS_TOP_LEVEL for k in col0_keys))
 
     print()
     print(f"{PASS} passed, {FAIL} failed")
