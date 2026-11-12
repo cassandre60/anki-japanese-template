@@ -69,17 +69,18 @@ After **every** template/CSS modification, finish with exactly one command:
 
 ```bash
 ./finish.sh "<semantic commit message>"
-# --local: sync + export + commit only · --minor: bump v1.x.0
+# --local: sync + build + commit only · --minor: bump v1.x.0
 # --prompt "text": archive prompt (rule 3) before anything runs
 ```
 
 Chain (stops on first failure): `0.` `./verify` (side-effect-free gate) →
 `1.` version stamp → `2.` `sync_to_anki.py` (pre-sync snapshot to gitignored
-`backups/<timestamp>/`) → `3.` `release_apkg.py` (deck
-`My Life Decks::Japanese::anki-japanese-template` via `exportPackage` to
-gitignored `dist/*.apkg`) → `4.` commit → `5.` push main → `6.`
-`gh release create --target main` (tag points at the pushed commit) →
-fetch the remote tag. The apkg ships as a Release asset, never in the repo.
+`backups/<timestamp>/`) → `3.` `build_sample_apkg.py` (builds
+gitignored `dist/*.apkg` from repo files — import-validate it in a scratch
+Anki profile before step 5) → `4.` commit → `5.` push main → push tag.
+The tag push triggers `release.yml`: CI re-runs `./verify`, rebuilds the
+apkg, and publishes the GitHub release (ADR 007 — the desktop never
+uploads the asset). The apkg ships as a Release asset, never in the repo.
 Do not skip, reorder, or substitute steps.
 
 ### 3. Prompt archiving
@@ -115,7 +116,9 @@ badges or verbose labels · vanilla scoped JS resilient to WebView DOM re-use.
 `Card 1 - Front.template.anki` (front modes + Mature Word Mode) ·
 `Card 1 - Back.template.anki` (grid, audio, lightbox) ·
 `Card 1 - Style.css` (themes, layout, compactor §6b, truncator §6c) ·
-`fetch_anki_fields.py` · `sync_to_anki.py` · `release_apkg.py` · `verify` ·
-`finish.sh` · `tests/` (compactor + templates + front_modes +
-mature_content + layout + readability) · `docs/adr/` · `chat_history/` ·
-`dist/` + `backups/` (gitignored).
+`fetch_anki_fields.py` · `sync_to_anki.py` · `fetch_sample_deck.py` ·
+`build_sample_apkg.py` · `verify` · `finish.sh` ·
+`.github/workflows/` (verify.yml + release.yml) ·
+`tests/` (compactor + templates + front_modes + mature_content + layout +
+readability + cloze_fallback + sample_apkg) · `docs/adr/` · `chat_history/` ·
+`samples/` (committed release fixtures) · `dist/` + `backups/` (gitignored).

@@ -22,7 +22,8 @@ Anki renderers: Desktop Qt6 WebEngine · AnkiDroid WebView
   │  live services at render time: AnkiConnect :8765 (desktop only)
   ↓
 Tooling (stdlib-only): fetch_anki_fields.py · sync_to_anki.py ·
-                       release_apkg.py · verify · finish.sh
+                       fetch_sample_deck.py · build_sample_apkg.py ·
+                       verify · finish.sh · release.yml (CI publish)
 ```
 
 ## Components
@@ -147,14 +148,18 @@ touch targets),
 ### Tooling
 
 ```text
-fetch_anki_fields.py → .anki_fields.json (gitignored, read-only dump)
-sync_to_anki.py      → snapshot backups/<ts>/, push Front/Back/CSS
-release_apkg.py      → exportPackage deck → dist/*.apkg (gitignored)
-verify               → local quality gate (tests only, no side effects)
-finish.sh            → verify → stamp → sync → export → commit → push main → release (--target main) → fetch tag
-tests/               → test_compactor.py + test_templates.py
-                         + test_front_modes.py + test_mature_content.py
-                         + test_layout.py + test_yukei.py
+fetch_anki_fields.py    → .anki_fields.json (gitignored, read-only dump)
+sync_to_anki.py         → snapshot backups/<ts>/, push Front/Back/CSS
+fetch_sample_deck.py    → derive samples/ (release fixtures) from the live deck
+build_sample_apkg.py    → build dist/*.apkg from repo files (schema-11 legacy)
+verify                  → local quality gate (tests only, no side effects)
+finish.sh               → verify → stamp → sync → build → commit → push main → push tag
+release.yml             → on tag push: verify → build apkg → publish GitHub release
+release_apkg.py         → retired Anki-Connect exporter (pending removal after E2E)
+tests/                  → test_compactor.py + test_templates.py
+                           + test_front_modes.py + test_mature_content.py
+                           + test_layout.py + test_yukei.py + test_cloze_fallback.py
+                           + test_sample_apkg.py
 ```
 
 Fields are **not** a repo artifact: the Anki UI owns them; agents bootstrap
@@ -183,6 +188,10 @@ entity graph exists beyond what is shown.
   reading surface, with an animated illustrated fallback.
 - **006** Cards with `Picture` use a CSS-treated photo in that same band and
   retire the separate context thumbnail; the existing lightbox is reused.
+- **007** Runner-built releases (ADR 004 amended): the sample deck is repo
+  content (`samples/` derived from the live deck), a stdlib builder produces
+  the apkg headlessly, `finish.sh` stops at tag push, and `release.yml`
+  publishes from CI — the desktop never uploads the asset.
 
 ## Evolution rule
 

@@ -462,20 +462,36 @@ def main():
     finish = open(os.path.join(ROOT, "finish.sh"), encoding="utf-8").read()
     check("finish.sh: no-op run cannot publish a release",
           "Nothing to push or release" in finish)
-    # Deterministic release ordering: push main BEFORE gh release create so
-    # the tag points at the exact pushed commit (--target main).
+    # ADR 007: publishing is CI-owned. finish.sh must never create a GitHub
+    # release or upload the apkg; it pushes main then the tag, and the tag
+    # push triggers release.yml (runner-built release).
     # Strip comments to check actual command order.
     finish_code = re.sub(r"^\s*#[^\n]*\n", "", finish, flags=re.M)
     finish_code = re.sub(r"^\s*#[^\n]*$", "", finish_code, flags=re.M)
-    check("finish.sh: push main before gh release create (--target main)",
-          "git push origin main" in finish_code
-          and "gh release create" in finish_code
-          and finish_code.index("git push origin main") < finish_code.index("gh release create")
-          and "--target main" in finish_code)
-    check("finish.sh: fetches the remote tag after release creation",
-          finish_code.index("gh release create") < finish_code.rindex("git fetch origin \"refs/tags/*:refs/tags/*\""))
+    check("finish.sh: never publishes (no gh release create — CI-owned per ADR 007)",
+          "gh release create" not in finish_code)
+    check("finish.sh: no-op run cannot push the tag",
+          finish_code.index("Nothing to push or release.") < finish_code.index('git push origin "$NEW_TAG"'))
+    check("finish.sh: push main before tag push",
+          finish_code.index("git push origin main") < finish_code.index('git push origin "$NEW_TAG"'))
+    check("finish.sh: tag created after the commit (tag == pushed commit)",
+          finish_code.rindex("git tag \"$NEW_TAG\"") > finish_code.rindex("git commit -m")
+          and finish_code.index("git tag \"$NEW_TAG\"") < finish_code.index('git push origin "$NEW_TAG"'))
     check("finish.sh: verify runs before version stamp (step 0 before step 1)",
           finish.index("./verify") < finish.index("NEW_TAG="))
+    check("finish.sh: builds the apkg locally for scratch-profile validation",
+          "python3 build_sample_apkg.py" in finish_code
+          and "release_apkg.py" not in finish_code)
+    # release.yml must gate the artifact: verify → build → publish, tag-triggered.
+    release_yml = open(os.path.join(ROOT, ".github/workflows/release.yml"),
+                       encoding="utf-8").read()
+    check("release.yml: tag-push trigger only",
+          re.search(r'on:\s*\n\s*push:\s*\n\s*tags:\s*\n\s*- "v\*"', release_yml) is not None)
+    check("release.yml: verify runs before the apkg build before publish",
+          release_yml.index("./verify") < release_yml.index("python3 build_sample_apkg.py")
+          < release_yml.index("gh release create"))
+    check("release.yml: publishes the built apkg as the release asset",
+          re.search(r'gh release create "\$TAG" dist/anki-japanese-template\.apkg', release_yml) is not None)
 
     print()
     print(f"{PASS} passed, {FAIL} failed")

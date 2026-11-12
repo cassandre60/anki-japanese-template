@@ -1,0 +1,42 @@
+name: release
+
+# Runner-built releases (ADR 007): pushing a tag runs the quality gate,
+# builds the release apkg from repo files only, and publishes it as a
+# GitHub Release asset. No local network upload is involved.
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - name: Install test-only deps (compactor)
+        run: pip install beautifulsoup4 soupsieve
+      - name: Install Japanese fonts (layout probes measure real CJK glyphs)
+        run: sudo apt-get update && sudo apt-get install -y fonts-noto-cjk
+      - name: Run local quality gate
+        run: ./verify
+      - name: Build release apkg from repo files
+        run: python3 build_sample_apkg.py
+      - name: Publish GitHub release with the apkg asset
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+          COMMIT: ${{ github.sha }}
+        run: |
+          gh release create "$TAG" dist/anki-japanese-template.apkg \
+            --title "$TAG" \
+            --notes "Automated release for $TAG (commit $COMMIT), built by CI from the tagged commit.
+
+Install: import the .apkg in Anki, then delete the sample cards — the note type is retained." \
+            --latest

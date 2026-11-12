@@ -6,9 +6,9 @@
 #   ./finish.sh "<commit message>"
 #
 # Flags:
-#   --local          Review mode: sync + export + commit only. Skips push and
-#                    GitHub release. Use while iterating; finish the batch with
-#                    a full run (no flag) to publish.
+#   --local          Review mode: sync + build + commit only. Skips the stamp,
+#                    push, and tag. Use while iterating; finish the batch with
+#                    a full run (no flag) to release.
 #   --minor          Bump the MINOR version segment (v1.x.0) instead of the
 #                    patch segment. Use for multi-feature releases.
 #   --prompt "text"  Append the user prompt to chat_history/opencode_prompts.txt
@@ -17,21 +17,28 @@
 #
 #   It executes, in order:
 #   0. ./verify — local quality gate (compactor CSS + template invariants
-#                 + layout; skipped silently when tests/ is absent)
+#                 + builder + layout; skipped silently when tests/ is absent)
 #   1. version stamp  — compute the next release tag and rewrite the CSS
 #                        header Version: line (full runs only; the stamp is
-#                        what Anki receives in step 2, so it never lags)
+#                        what Anki receives in step 2 and what the builder
+#                        embeds in the artifact, so it never lags)
 #   2. sync_to_anki.py — push templates+CSS into Anki via Anki-Connect
 #                        (also snapshots live Anki state into backups/)
-#   3. release_apkg.py — export sample deck to dist/*.apkg via Anki-Connect
+#   3. build_sample_apkg.py — build dist/*.apkg from repo files (ADR 007).
+#                        Import-validate this artifact in a scratch Anki
+#                        profile BEFORE pushing the tag (step 5).
 #   4. git commit     — stage everything (incl. chat_history log) & commit
-#   5. git push main  — push the commit to origin/main FIRST so the tag
-#                        points at the exact pushed release commit
-#   6. GitHub release — gh release create --target main (auto-bump tag + apkg)
-#                        → fetch the remote tag for the next version bump
+#   5. push main + tag — push the commit to origin/main, then push the tag.
+#                        The tag push triggers release.yml: CI re-runs
+#                        ./verify, builds the apkg from the tagged commit,
+#                        and publishes the GitHub release (ADR 007 — the
+#                        desktop never uploads the asset).
+#
+#   Publishing is CI-owned: this script never creates a GitHub release and
+#   never uploads the apkg.
 #
 # Any failure stops the chain with a clear message (set -e). Requires: Anki
-# running with Anki-Connect, gh CLI authenticated (full mode only).
+# running with Anki-Connect. (gh is only used by release.yml on the runner.)
 # =============================================================================
 set -euo pipefail
 
@@ -49,7 +56,7 @@ while [ $# -gt 0 ]; do
     --minor)  BUMP_KIND=minor ;;
     --prompt) shift; PROMPT_TEXT="${1:?--prompt requires a text argument}" ;;
     -h|--help)
-      sed -n '2,30p' "$0"; exit 0 ;;
+      sed -n '2,32p' "$0"; exit 0 ;;
     *)
       if [ -z "$COMMIT_MSG" ]; then
         COMMIT_MSG="$1"
@@ -75,7 +82,7 @@ fi
 
 # ---------- step 0: regression tests (delegates to ./verify, the local gate) ----------
 if [ -d tests ]; then
-  echo "==> [0/6] Running regression tests (./verify)"
+  echo "==> [0/5] Running regression tests (./verify)"
   ./verify
 fi
 
@@ -84,6 +91,7 @@ fi
 # last released version and the working tree is not polluted.
 NEW_TAG=""
 if [ "$LOCAL" -eq 0 ]; then
+  echo "==> [1/5] Stamping version"
   git fetch origin "refs/tags/*:refs/tags/*" --quiet
   # Auto-bump version from the latest existing tag (v<major>.<minor>.<patch>)
   LATEST_TAG="$(git tag --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -1 || true)"
@@ -101,8 +109,8 @@ PY
 )"
   fi
   # Rewrite the Version: line in the CSS header comment. The stamp is what
-  # step 2 pushes to Anki and what step 4 commits — tag, tree and the live
-  # template can never disagree.
+  # step 2 pushes to Anki, what step 4 commits, and what the builder encodes
+  # into the artifact — tag, tree, live template and apkg can never disagree.
   python3 - "$NEW_TAG" <<'PY'
 import re, sys
 tag = sys.argv[1]
@@ -118,13 +126,13 @@ if n and new != css:
 PY
 fi
 
-echo "==> [1/6] Syncing templates to Anki (Anki-Connect)"
+echo "==> [2/5] Syncing templates to Anki (Anki-Connect)"
 python3 sync_to_anki.py
 
-echo "==> [2/6] Exporting sample deck to dist/"
-python3 release_apkg.py
+echo "==> [3/5] Building release apkg from repo files (validate in a scratch profile before step 5)"
+python3 build_sample_apkg.py
 
-echo "==> [3/6] Committing changes"
+echo "==> [4/5] Committing changes"
 git add -A
 CHANGED=0
 if git diff --cached --quiet; then
@@ -136,7 +144,7 @@ fi
 
 if [ "$LOCAL" -eq 1 ]; then
   echo ""
-  echo "Local run complete (synced, exported, committed)."
+  echo "Local run complete (synced, built, committed)."
   exit 0
 fi
 
@@ -145,23 +153,11 @@ if [ "$CHANGED" -eq 0 ]; then
   exit 0
 fi
 
-echo "==> [4/6] Pushing to origin/main"
+echo "==> [5/5] Pushing main, then tag $NEW_TAG (CI builds and publishes the release)"
 git push origin main
+git tag "$NEW_TAG"
+git push origin "$NEW_TAG"
 
-echo "==> [5/6] Creating GitHub release (--target main: tag points at the pushed commit)"
-NOTES="Automated release from commit: $COMMIT_MSG
-
-Install: import the .apkg in Anki, then delete the sample cards — the note type is retained."
-gh release create "$NEW_TAG" dist/anki-japanese-template.apkg \
-  --target main \
-  --title "$NEW_TAG" \
-  --notes "$NOTES" \
-  --latest
-
-# The release tag was created on the REMOTE by gh above; fetch it so local
-# tag bookkeeping stays in sync for the next run's version bump.
-git fetch origin "refs/tags/*:refs/tags/*" --quiet
-
-echo "==> [6/6] Done"
 echo ""
-echo "All done: synced, exported, committed, pushed, released as $NEW_TAG"
+echo "All done: synced, built, committed, pushed; release.yml is building $NEW_TAG."
+echo "Watch: gh run watch (or the Actions tab). The release appears when the run completes."
