@@ -1,0 +1,25 @@
+{
+  "model": "Japanese Note type (Sentence card by Default)",
+  "fields": [
+    "Expression",
+    "Definition",
+    "Kanji Notes",
+    "Source",
+    "Sentence",
+    "Sentence (furigana)",
+    "Sentence Audio",
+    "Translation",
+    "Picture",
+    "context",
+    "Notes",
+    "Word Audio",
+    "Pitch Accent",
+    "furigana",
+    "reading",
+    "cloze-prefix",
+    "cloze-body",
+    "cloze-suffix",
+    "Frequency",
+    "Extended definition"
+  ]
+}

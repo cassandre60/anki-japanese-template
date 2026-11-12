@@ -30,6 +30,8 @@ echo "==> verify: front-mode resolver behavior (listening semantics)"
 python3 tests/test_front_modes.py
 echo "==> verify: cloze-fallback sentence preservation (headless Chrome, skipped gracefully without Chrome)"
 python3 tests/test_cloze_fallback.py
+echo "==> verify: sample-deck fixture contract (ADR 007)"
+python3 tests/test_sample_apkg.py
 echo "==> verify: mature content-search fallback (duplicate cards / ambiguity)"
 python3 tests/test_mature_content.py
 echo "==> verify: back More lazy-load + prune behavior (headless Chrome, skipped gracefully without Chrome)"
