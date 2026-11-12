@@ -2597,3 +2597,11 @@ also add regression tests for this
 ---
 
 works! prepare evrythinglefttodosoi  canclosesesssion
+
+---
+
+why does this card i just created : 言い聞かせる show only そう自分に言い聞かせながらブレーキを踏み続けるのも in the front instead of the whole sentence? is the template bugged?! investigate
+
+---
+
+why does this card i just created : 言い聞かせる show only そう自分に言い聞かせながらブレーキを踏み続けるのも in the front instead of the whole sentence? is the template bugged?! investigate

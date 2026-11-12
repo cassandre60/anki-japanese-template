@@ -13,8 +13,10 @@
          view so exactly one listening button is ever visible.
        - Cloze Fallback: Sentence without a bold term (jidoushio mobile
          exports) is rebuilt in JS from cloze-prefix + <b>cloze-body</b>
-         + cloze-suffix when all three are non-empty; otherwise the
-         usual sentence is kept untouched.
+         + cloze-suffix when all three are non-empty AND the trio is not
+         already contained in the rendered sentence — a fuller sentence
+         (e.g. a Yomitan card whose Sentence has no <b> but carries the
+         whole context) is never replaced by a cloze fragment.
        - Frequency legacy: No definitions but Frequency present (old cards with deleted glosses) → usual sentence, never the audio button.
        - Fallback: Shows Sentence / Expression if both definitions and audio are missing.
 - Mature Word Mode (desktop only): If the card interval >= LONG_INTERVAL_DAYS
@@ -341,7 +343,11 @@
          the cloze trio (prefix/body/suffix) is complete, rebuild it as
          prefix + <b>body</b> + suffix so the front is indistinguishable
          from a proper Yomitan sentence (same .sentence-display b styling).
-         Any gap or failure keeps the original sentence untouched. */
+         NEVER replace a fuller sentence: Yomitan stores only a short
+         context window in the cloze fields, so when the trio is already
+         contained in the rendered sentence, that sentence is the richer
+         content and is kept untouched (unbolded). Any gap or failure
+         keeps the original sentence untouched. */
       try {
         const probe = container.querySelector('.cloze-probe');
         const probeText = (sel) => {
@@ -354,6 +360,12 @@
         if (clozePre && clozeMid && clozeSuf) {
           container.querySelectorAll('.sentence-display').forEach((sd) => {
             if (!sd.querySelector('b, strong')) {
+              /* Whitespace-insensitive containment: <br> contributes
+                 nothing to textContent and field spacing can differ, so
+                 compare with all whitespace stripped on both sides. */
+              const sentText = (sd.textContent || '').replace(/\s+/g, '');
+              const trioText = (clozePre + clozeMid + clozeSuf).replace(/\s+/g, '');
+              if (sentText.includes(trioText)) return;
               sd.textContent = '';
               const bold = document.createElement('b');
               bold.textContent = clozeMid;
