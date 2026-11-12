@@ -184,14 +184,16 @@ T2/T3 are parallelizable; T4 needs T2; T5 needs T3.
   (publishing is CI-owned; no local artifact build — `./verify` already
   builds and validates the apkg, and the scratch-profile import check is a
   one-time gate for the first CI release; §9 contract tests updated).
-  Status: IN PROGRESS
-  — remaining: first `./finish.sh` release (pushes the pending commits and
-  fires release.yml as v1.8.80); then the ONE-TIME artifact check,
-  agent-runnable without Anki: download the CI asset, rebuild from the tag
-  in a temp worktree, confirm byte-identical, re-run structural
-  validation; optionally one human scratch-profile import as belt-and-
-  braces; delete the stuck v1.8.79 draft (its tag predates release.yml, so
-  CI can never publish it); `release_apkg.py` retired after that.
+  Status: COMPLETE
+  — v1.8.80 was the first runner-built release: tag push → CI ran verify,
+  built the apkg, and published the asset (github-actions[bot]). One-time
+  artifact check passed: the downloaded asset re-derives byte-for-byte
+  from the tagged commit except the 4-byte SQLite library stamp in the
+  collection header (informational, toolchain-dependent), with zero
+  timestamp variance and identical media + media index; the official
+  `anki` library imported it cleanly (11 notes, 11 cards, 39 media, all
+  references resolve, integrity clean). Stuck v1.8.79 draft deleted with
+  its tag; `release_apkg.py` retired (§9 guards the absence).
 
 ## Roadmap (evolution loop input, not committed scope)
 

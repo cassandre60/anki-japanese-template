@@ -66,5 +66,9 @@ assets). The builder's legacy-format output must be import-validated
 against current Anki in a scratch profile; documented fallback if legacy
 import is ever refused: also emit an uncompressed `collection.anki21`
 twin (Version::Legacy2 — still schema 11, a name the importer prefers).
-`release_apkg.py`'s Anki-Connect export path is retired once the builder +
-workflow are validated end-to-end.
+`release_apkg.py`'s Anki-Connect export path was retired on 2026-11-12:
+v1.8.80 was the first runner-built release (CI verified → built →
+published the asset), the artifact was re-derived locally from the tagged
+commit and matched except the 4-byte SQLite library stamp, and the official
+Anki library imported it cleanly (11 notes, 11 cards, 39 media, integrity
+clean). The exporter file was then deleted.

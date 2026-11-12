@@ -111,9 +111,9 @@ off-screen context to be solvable is a bad mine and should be re-mined.
   falls back to sentence); extensible for future behavior-related tags
   without card redesign.
 - Tooling: `sync_to_anki.py` pushes Front/Back/CSS with a pre-sync snapshot
-  to `backups/<timestamp>/`; `release_apkg.py` exports deck
-  `My Life Decks::Japanese::anki-japanese-template` via `exportPackage`;
-  `finish.sh` runs tests → sync → export → commit → push → release.
+  to `backups/<timestamp>/`; releases are runner-built (ADR 007): `finish.sh`
+  runs verify → stamp → sync → commit → push main → tag, and CI builds the
+  apkg from repo files and publishes it as a Release asset.
 
 ## UX requirements
 

@@ -481,6 +481,10 @@ def main():
           finish.index("./verify") < finish.index("NEW_TAG="))
     check("finish.sh: no local apkg build or publish steps (builder lives in ./verify and CI)",
           "build_sample_apkg" not in finish_code and "release_apkg" not in finish_code)
+    # ADR 007: the Anki-Connect exporter was retired after v1.8.80 proved the
+    # runner-built path. It must stay retired — no resurrection.
+    check("release_apkg.py: retired (file absent)",
+          not os.path.exists(os.path.join(ROOT, "release_apkg.py")))
     # release.yml must gate the artifact: verify → build → publish, tag-triggered.
     release_yml = open(os.path.join(ROOT, ".github/workflows/release.yml"),
                        encoding="utf-8").read()

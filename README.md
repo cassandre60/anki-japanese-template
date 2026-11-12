@@ -78,7 +78,6 @@ Current set (20): `Expression`, `Definition`, `Kanji Notes`, `Source`, `Sentence
 git clone https://github.com/cassandre60/anki-japanese-template.git
 cd anki-japanese-template
 python3 sync_to_anki.py    # snapshots live state to backups/, then pushes Front/Back/CSS
-python3 release_apkg.py    # exports sample deck to dist/*.apkg
 ```
 
 **Option 3 — Manual:** paste `Card 1 - Front.template.anki`, `Card 1 - Back.template.anki`, and `Card 1 - Style.css` into the card template editor (**Tools → Manage Note Types → Cards**).
@@ -93,9 +92,9 @@ python3 release_apkg.py    # exports sample deck to dist/*.apkg
 ├── Card 1 - Style.css             # Themes, layout, scenic band (§17), compactor, truncator
 ├── fetch_anki_fields.py           # Read-only dump of live Anki fields (see above)
 ├── sync_to_anki.py                # Push templates/CSS to Anki (pre-sync backup)
-├── release_apkg.py                # Export sample deck to dist/*.apkg
+├── build_sample_apkg.py           # Build the release .apkg from repo files (CI uses it too)
 ├── verify                         # Local quality gate (tests only, no side effects)
-├── finish.sh                      # One command: verify + sync + export + commit + push + release
+├── finish.sh                      # One command: verify + stamp + sync + commit + push (CI publishes)
 ├── PRODUCT.md / MVP.md            # Product intent / current scope
 ├── ARCHITECTURE.md + docs/adr/    # Technical structure / lasting decisions
 ├── QUALITY.md / TEST_STRATEGY.md  # Invariants / how they are verified

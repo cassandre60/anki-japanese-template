@@ -81,8 +81,8 @@ The tag push triggers `release.yml`: CI runs `./verify`, builds the apkg,
 and publishes the GitHub release (ADR 007 — the desktop never builds or
 uploads the asset; the apkg is for other installers, the maintainer's Anki
 is fed by the sync step). Build the artifact locally only on demand
-(`python3 build_sample_apkg.py`, e.g. the one-time scratch-profile import
-check for the first CI release). The apkg ships as a Release asset, never
+(`python3 build_sample_apkg.py`; the one-time first-CI-release check is
+done — v1.8.80 proved the path). The apkg ships as a Release asset, never
 in the repo. Do not skip, reorder, or substitute steps.
 
 ### 3. Prompt archiving

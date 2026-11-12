@@ -45,9 +45,10 @@ compact informative back, and a one-command sync → export → release loop.
 - Empty-field collapse everywhere: no padding, border, or margin survives an
   empty field; the More section and its toggle self-remove when empty.
 - Tooling: field bootstrap (`fetch_anki_fields.py`), snapshotted sync
-  (`sync_to_anki.py`), apkg export (`release_apkg.py`), `verify` gate,
-  `finish.sh` release loop, regression tests (compactor + templates +
-  front-modes + layout + Yūkei scenic-band contracts).
+  (`sync_to_anki.py`), runner-built releases (ADR 007: `build_sample_apkg.py`
+  + `release.yml`), `verify` gate, `finish.sh` release loop, regression
+  tests (compactor + templates + front-modes + layout + Yūkei scenic-band
+  contracts).
 
 ## Excluded capabilities
 
