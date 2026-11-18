@@ -2637,3 +2637,7 @@ dothings now
 ---
 
 [reconstructed after context compaction — original wording unavailable] Use the cool blue/purple palette from the last fallback screenshot, and make the side rails a bit bigger.
+
+---
+
+make the strip a bit lengthier; there is still some wasted space on the top

@@ -208,8 +208,10 @@ T2/T3 are parallelizable; T4 needs T2; T5 needs T3.
   probes phone (412), narrow pane (900), and wide pane (1440) layouts plus
   rail hit-testing, zero flow, full-height clip, photo/fallback visibility,
   warm tint, reclaimed top padding, cool accent, and conversation behavior.
-  Status: IN PROGRESS — `./verify` green (69/69 Yūkei checks); synced to Anki
-  for visual confirmation; full release run pending.
+  Status: COMPLETE — wide desktop cards use full-height 6% side rails
+  with .rail-photo-left/right 25%/75% crops; top space tightened; dark back-card
+  controls use cool blue/purple palette; narrow/mobile top band unchanged;
+  69/69 Yūkei checks green; verified live in Anki.
 
 ## Roadmap (evolution loop input, not committed scope)
 
