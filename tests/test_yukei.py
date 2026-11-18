@@ -60,8 +60,8 @@ def scenic_fixture(css: str, open_lightbox: str, mode: str) -> str:
     defs = """<svg class="scenic-side-defs" width="0" height="0" aria-hidden="true" focusable="false">
     <defs>
       <clipPath id="scenic-side-clip" clipPathUnits="objectBoundingBox">
-        <rect x="0" y="0" width="0.04" height="1"/>
-        <rect x="0.96" y="0" width="0.04" height="1"/>
+        <rect x="0" y="0" width="0.06" height="1"/>
+        <rect x="0.94" y="0" width="0.06" height="1"/>
       </clipPath>
     </defs>
   </svg>"""
@@ -280,10 +280,10 @@ def main() -> int:
         and fallback_branch is not None
         and photo_branch.group(1).count('id="scenic-side-clip"') == 1
         and fallback_branch.group(1).count('id="scenic-side-clip"') == 1
-        and photo_branch.group(1).count('width="0.04"') == 2
-        and fallback_branch.group(1).count('width="0.04"') == 2
-        and photo_branch.group(1).count('x="0.96"') == 1
-        and fallback_branch.group(1).count('x="0.96"') == 1,
+        and photo_branch.group(1).count('width="0.06"') == 2
+        and fallback_branch.group(1).count('width="0.06"') == 2
+        and photo_branch.group(1).count('x="0.94"') == 1
+        and fallback_branch.group(1).count('x="0.94"') == 1,
     )
     check(
         "Back: illustrated scene carries its own wide-card class",
@@ -365,7 +365,7 @@ def main() -> int:
         ("--scenic-sat", "0.8"),
         ("--scenic-tint", "0.25"),
         ("--scenic-wash", "0.25"),
-        ("--scenic-rail-w", "4%"),
+        ("--scenic-rail-w", "6%"),
     ):
         check(f"CSS: {token} is declared once with {value}", len(re.findall(rf"{re.escape(token)}\s*:\s*{re.escape(value)}\s*;", css)) == 1)
 
@@ -495,9 +495,9 @@ def main() -> int:
         r"\.scenic-band::before,\s*\.scenic-band::after\s*\{([^}]*)\}", wide
     )
     check(
-        "CSS: wide inner fade matches the 4% rail token",
+        "CSS: wide inner fade matches the 6% rail token",
         fade_pseudos is not None
-        and "width: var(--scenic-rail-w, 4%)" in fade_pseudos.group(1)
+        and "width: var(--scenic-rail-w, 6%)" in fade_pseudos.group(1)
         and wide.count("linear-gradient(to right, transparent 55%, var(--card-bg) 100%)") == 1
         and wide.count("linear-gradient(to left, transparent 55%, var(--card-bg) 100%)") == 1,
     )

@@ -91,7 +91,7 @@
   --scenic-cloud: #2c2f52;
   --scenic-star-op: .8;
   --scenic-band-h: clamp(44px, 12.5vw, 58px);
-  --scenic-rail-w: 4%;
+  --scenic-rail-w: 6%;
   --scenic-tint-color: #e07a5f;
   --scenic-blur: 16px;
   --scenic-sat: 0.8;
@@ -2057,11 +2057,19 @@ ruby:focus-within rt {
 }
 
 @container anki-card (min-width: 1000px) {
-  /* The band no longer paints a strip above the content, so its top-padding
-     share is reclaimed too: the hero's own furigana headroom remains the only
-     reserved space above the word. */
+  /* Reclaim top vertical space: margin-top zeroed, padding-top zeroed,
+     and hero padding tightened while keeping safe furigana clearance. */
   .back-card .card-container {
+    margin-top: 0;
     padding-top: 0;
+  }
+
+  .back-card .word-display {
+    padding-top: clamp(16px, 2.4vh, 26px);
+  }
+
+  .back-card .hero-header {
+    margin-top: 0;
   }
 
   .back-card .card-container > .scenic-band {
@@ -2074,7 +2082,7 @@ ruby:focus-within rt {
     z-index: 0;
     background: var(--scenic-sky);
     /* Mirrors the two rects in the template's #scenic-side-clip
-       (0 → 0.04 and 0.96 → 1), i.e. --scenic-rail-w per side. */
+       (0 → 0.06 and 0.94 → 1), i.e. --scenic-rail-w per side. */
     clip-path: url(#scenic-side-clip);
     /* No vertical mask: the rails run to the card's top edge. The card's
        own rounded clipping handles the corners. */
@@ -2095,7 +2103,7 @@ ruby:focus-within rt {
     inset: auto;
     top: 0;
     bottom: 0;
-    width: var(--scenic-rail-w, 4%);
+    width: var(--scenic-rail-w, 6%);
     overflow: hidden;
   }
 
@@ -2131,7 +2139,7 @@ ruby:focus-within rt {
     position: absolute;
     top: 0;
     bottom: 0;
-    width: var(--scenic-rail-w, 4%);
+    width: var(--scenic-rail-w, 6%);
     pointer-events: none;
     z-index: 2;
   }

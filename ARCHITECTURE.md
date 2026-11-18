@@ -97,7 +97,7 @@ Single quiet column with typography-driven hierarchy:
 card-container
  ├── .scenic-band (narrow: photo-derived when Picture exists, else the
  │    aria-hidden Fuji/cloud-sea fallback; wide ≥1000px: absolute full-height
- │    side rails with .rail-photo-left/right 25%/75% crops, clipped by
+ │    6% side rails with .rail-photo-left/right 25%/75% crops, clipped by
  │    #scenic-side-clip. One photo trigger/lightbox.)
  └── .card-content (wide: relative, above the absolute band)
       ├── .hero-header (3-col grid: left meta | centered word | right meta;

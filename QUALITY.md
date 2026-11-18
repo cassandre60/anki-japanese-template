@@ -92,14 +92,14 @@ mechanically verified*. Code implements; tests enforce.
   source color with `saturate()` and `mix-blend-mode: overlay`; it must never
   use `grayscale()` + `mix-blend-mode: color`.
 - Wide panes (container ≥1000px) must not spend vertical flow on the scenic
-  treatment: the band becomes two full-height clipped side rails inside the
-  existing card edges, the container's top padding is reclaimed, content
-  paints above them, and the single photo trigger remains the one
-  lightbox/focus stop. The rails keep the blurred photo (or the illustrated
-  fallback) and the warm tint. The dark back card's controls use the cool
-  blue/purple accent; the light theme keeps its warm accent. Below 1000px the
-  top band, photo pipeline, and full-width lightbox target must render exactly
-  as before.
+  treatment: the band becomes two full-height 6% side rails (`--scenic-rail-w: 6%`,
+  `#scenic-side-clip`), the container's top margin/padding are zeroed and hero
+  padding is tightened, content paints above the rails, and the single photo
+  trigger remains the one lightbox/focus stop. The rails keep the blurred photo
+  (or the illustrated fallback) and the warm tint. The dark back card's controls
+  use the cool blue/purple accent; the light theme keeps its warm accent. Below
+  1000px the top band, photo pipeline, and full-width lightbox target must
+  render exactly as before.
 - Secondary information (translation, context, kanji notes, notes, source,
   full extended definition) lives inside `.more-section`, toggleable via
   `More ▾` / `Less ▴`; the toggle and section self-remove when no secondary

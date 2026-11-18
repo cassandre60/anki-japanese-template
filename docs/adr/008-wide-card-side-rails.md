@@ -54,9 +54,9 @@ Two further constraints shaped the implementation:
   rails run the full card height, and the card's existing rounded clipping
   handles the corners.
 - **Rails:** one inline `<clipPath id="scenic-side-clip">` per band branch,
-  with rects `0 → 0.04` and `0.96 → 1` (`objectBoundingBox`). The 4% token is
-  `--scenic-rail-w`; at a 1360px card that is ~54px per side, deliberately
-  larger than the earlier 3% prototype. `::before` / `::after` gradients fade
+  with rects `0 → 0.06` and `0.94 → 1` (`objectBoundingBox`). The 6% token is
+  `--scenic-rail-w`; at a 1360px card that is ~82px per side, giving the
+  blurred picture ample framing space without encroaching on content. `::before` / `::after` gradients fade
   each rail's inner edge into the card surface, so only its outer ~60% reads
   as colour.
 - **Picture treatment:** on wide cards the photo is mounted into two
@@ -91,9 +91,10 @@ Two further constraints shaped the implementation:
 
 - Wide desktop cards reclaim the band's flow cost **and** the container's top
   padding: content starts at the card's inner top edge, with only the hero's
-  furigana headroom reserved above the word. The rails run full height, inside
-  the existing card edges; the faded inner edge does not cross the content
-  area.
+  top space: `.word-display` top padding is tightened to ~26px on wide cards
+  (preserving safe clearance for ruby text), and container top margin/padding
+  are zeroed, eliminating dead space above the expression. The rails run full
+  height at 6% width (~82px) inside the card edges.
 - The blurred picture (or the illustrated fallback) remains visible on wide
   cards, now as two quiet full-height rails. The card keeps its visual
   identity and its lightbox affordance instead of trading the photo for a flat
