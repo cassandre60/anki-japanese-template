@@ -71,7 +71,8 @@ def scenic_fixture(css: str, open_lightbox: str, mode: str) -> str:
   <div class="scenic-photo scenic-photo-trigger" onclick="openLightbox(this)"
        role="button" tabindex="0" aria-label="画像を拡大"
        onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault(); this.click()}">
-    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='600'%3E%3Crect width='100%25' height='100%25' fill='%23204080'/%3E%3Ccircle cx='400' cy='260' r='150' fill='%23e07050'/%3E%3C/svg%3E" alt="frame">
+    <div class="rail-photo rail-photo-left"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='600'%3E%3Crect width='100%25' height='100%25' fill='%23204080'/%3E%3Ccircle cx='400' cy='260' r='150' fill='%23e07050'/%3E%3C/svg%3E" alt="frame"></div>
+    <div class="rail-photo rail-photo-right" aria-hidden="true"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='600'%3E%3Crect width='100%25' height='100%25' fill='%23204080'/%3E%3Ccircle cx='400' cy='260' r='150' fill='%23e07050'/%3E%3C/svg%3E" alt="frame"></div>
     <div class="tint"></div><div class="grain"></div><div class="wash"></div><div class="fade"></div>
   </div>
 </div>"""
@@ -236,9 +237,9 @@ def main() -> int:
     markup = re.sub(r"<!--.*?-->", "", back, flags=re.S)
     markup = re.sub(r"<script.*?</script>", "", markup, flags=re.S)
 
-    # Markup shape: one Picture field, mutually exclusive photo/fallback bands,
-    # and no retired context-grid thumbnail.
-    check("Back: Picture is referenced exactly once", len(re.findall(r"\{\{Picture\}\}", back)) == 1)
+    # Markup shape: Picture in left and right rails inside the scenic band,
+    # mutually exclusive photo/fallback bands, and no retired context-grid thumbnail.
+    check("Back: Picture is referenced in both rails inside the scenic band", len(re.findall(r"\{\{Picture\}\}", back)) == 2 and "rail-photo-left" in back and "rail-photo-right" in back)
     check(
         "Back: scenic photo/fallback conditionals are balanced and adjacent",
         re.search(
@@ -497,8 +498,8 @@ def main() -> int:
         "CSS: wide inner fade matches the 4% rail token",
         fade_pseudos is not None
         and "width: var(--scenic-rail-w, 4%)" in fade_pseudos.group(1)
-        and wide.count("linear-gradient(to right, transparent 35%, var(--card-bg) 100%)") == 1
-        and wide.count("linear-gradient(to left, transparent 35%, var(--card-bg) 100%)") == 1,
+        and wide.count("linear-gradient(to right, transparent 55%, var(--card-bg) 100%)") == 1
+        and wide.count("linear-gradient(to left, transparent 55%, var(--card-bg) 100%)") == 1,
     )
     content_rule = rule_body(wide, r"\.card-content")
     check(

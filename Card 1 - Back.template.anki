@@ -27,7 +27,9 @@
     {{#Picture}}
     <div class="scenic-band">
       <!-- Wide-card clip: turns the full-card band into two side rails
-           (Style §17b). One Picture reference, one focus stop. -->
+           (Style §17b). Each rail crops the same picture at a different
+           horizontal position; both crops live inside the one trigger, so
+           there is still one focus stop and one lightbox target. -->
       <svg class="scenic-side-defs" width="0" height="0" aria-hidden="true" focusable="false">
         <defs>
           <clipPath id="scenic-side-clip" clipPathUnits="objectBoundingBox">
@@ -40,7 +42,8 @@
            onclick="openLightbox(this)" role="button" tabindex="0"
            aria-label="画像を拡大"
            onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault(); this.click()}">
-        {{Picture}}
+        <div class="rail-photo rail-photo-left">{{Picture}}</div>
+        <div class="rail-photo rail-photo-right" aria-hidden="true">{{Picture}}</div>
         <div class="tint"></div>
         <div class="grain"></div>
         <div class="wash"></div>

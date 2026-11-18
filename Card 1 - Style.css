@@ -1984,6 +1984,16 @@ ruby:focus-within rt {
   cursor: pointer; /* this element is now the lightbox trigger */
 }
 
+/* Narrow / phone base: rail-photo-left covers the top band, rail-photo-right is hidden */
+.scenic-photo .rail-photo {
+  position: absolute;
+  inset: 0;
+}
+
+.scenic-photo .rail-photo-right {
+  display: none;
+}
+
 .scenic-photo img {
   position: absolute;
   top: -12%; left: -12%;
@@ -2078,8 +2088,43 @@ ruby:focus-within rt {
     display: none;
   }
 
-  /* Inner-edge falloff: each rail dissolves into the card surface. The fade
-     covers the whole rail, so only its outer ~60% reads as colour. */
+  /* Wide rails: left and right crops of the card picture. Each rail samples
+     its respective side of the image so centered subjects (characters,
+     action) blur visibly into the side rails instead of disappearing. */
+  .scenic-photo .rail-photo {
+    inset: auto;
+    top: 0;
+    bottom: 0;
+    width: var(--scenic-rail-w, 4%);
+    overflow: hidden;
+  }
+
+  .scenic-photo .rail-photo-left {
+    left: 0;
+  }
+
+  .scenic-photo .rail-photo-right {
+    display: block;
+    right: 0;
+  }
+
+  .scenic-photo .rail-photo img {
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .scenic-photo .rail-photo-left img {
+    object-position: 25% center;
+  }
+
+  .scenic-photo .rail-photo-right img {
+    object-position: 75% center;
+  }
+
+  /* Inner-edge falloff: each rail dissolves into the card surface. */
   .scenic-band::before,
   .scenic-band::after {
     content: "";
@@ -2093,12 +2138,12 @@ ruby:focus-within rt {
 
   .scenic-band::before {
     left: 0;
-    background: linear-gradient(to right, transparent 35%, var(--card-bg) 100%);
+    background: linear-gradient(to right, transparent 55%, var(--card-bg) 100%);
   }
 
   .scenic-band::after {
     right: 0;
-    background: linear-gradient(to left, transparent 35%, var(--card-bg) 100%);
+    background: linear-gradient(to left, transparent 55%, var(--card-bg) 100%);
   }
 
   .card-content {

@@ -81,13 +81,13 @@ mechanically verified*. Code implements; tests enforce.
   rails → word-display (largest, with Japanese seal) → metadata bar (5-star
   frequency visualizer & pitch accent & audio) → primary meaning → context →
   secondary collapsed behind More. Features discoverable via shortcut hints.
-- `Picture` is referenced exactly once in the back template. On phone/narrow
-  panes a populated field renders the card-derived scenic photo and keeps
-  click/Enter lightbox access; an empty field renders the non-focusable,
-  `aria-hidden` illustrated fallback. On wide panes (container ≥1000px) the
-  band leaves the flow and is clipped into two full-height side rails that keep
-  the same blurred photo/fallback pipeline; the photo trigger stays as the
-  single focusable lightbox target. The retired `.context-picture` markup is absent,
+- `Picture` is referenced in the back template inside `.rail-photo-left`
+  and `.rail-photo-right` (the single scenic-band lightbox trigger). On
+  phone/narrow panes a populated field renders the card-derived scenic photo
+  across the top band (right rail hidden); on wide panes (container ≥1000px)
+  both rails display blurred 25% and 75% crops of the image so centered
+  subjects remain visible on the sides. The retired `.context-picture` markup is
+  absent,
   so sentence context is full-width. The narrow photo pipeline preserves
   source color with `saturate()` and `mix-blend-mode: overlay`; it must never
   use `grayscale()` + `mix-blend-mode: color`.

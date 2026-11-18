@@ -59,13 +59,17 @@ Two further constraints shaped the implementation:
   larger than the earlier 3% prototype. `::before` / `::after` gradients fade
   each rail's inner edge into the card surface, so only its outer ~60% reads
   as colour.
-- **Picture treatment:** the rails keep the ADR 006 photo pipeline — the
-  blurred, desaturated source with its tint/grain/wash — so the blurred
-  picture is still visible on wide cards. Only `.scenic-photo .fade` is
-  hidden: its bottom falloff was designed for a 70px strip and would erase
-  most of a full-height picture. An empty `Picture` keeps the illustrated
-  Yūkei scene in the rails. The photo tint stays warm through
-  `--scenic-tint-color` (`#e07a5f` dark, `#b84a39` light).
+- **Picture treatment:** on wide cards the photo is mounted into two
+  independent rail elements (`.rail-photo-left` and `.rail-photo-right`),
+  sampling horizontal positions 25% and 75% with `object-fit: cover`.
+  Centered subjects (character illustrations, figures with transparent or dark
+  margins) blur visibly into both side rails instead of being clipped out into
+  the card center. On narrow panes and mobile, `.rail-photo-right` is hidden
+  and `.rail-photo-left` spans the full top band unchanged. Both rails sit
+  inside the single `.scenic-photo` lightbox trigger, preserving one focus stop
+  and one dialog. Only `.scenic-photo .fade` is hidden on wide cards; the
+  photo tint stays warm through `--scenic-tint-color` (`#e07a5f` dark,
+  `#b84a39` light).
 - **Controls:** the dark back card adopts the cool blue/purple accent
   (`--accent-color: #a394f0`, with matching light/soft/glow tokens) and
   resting audio labels at `#b9adf7`, so the card's buttons match the rails.

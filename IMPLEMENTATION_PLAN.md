@@ -199,8 +199,9 @@ T2/T3 are parallelizable; T4 needs T2; T5 needs T3.
   change for the back card: at `@container anki-card (min-width: 1000px)` the
   scenic band leaves the flow (including the container's top padding) and is
   clipped into two full-height side rails (`#scenic-side-clip`, 4% each,
-  `--scenic-rail-w`) that keep the blurred photo/fallback pipeline; the dark
-  card's controls use the cool blue/purple accent. `.card-content` is wrapped
+  `--scenic-rail-w`) with .rail-photo-left/right (25%/75% crops) so centered
+  subjects blur visibly into both rails; the dark card's controls use the cool
+  blue/purple accent. `.card-content` is wrapped
   above the absolute band. Phones and narrow reviewer panes keep the ADR
   005/006 top band, photo pipeline, and lightbox target unchanged. One
   `Picture` reference and one focus stop are preserved. `tests/test_yukei.py`
