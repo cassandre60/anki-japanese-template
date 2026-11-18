@@ -116,6 +116,11 @@ SCENIC_PROBE = r"""(() => {
   const heroBox = hero.getBoundingClientRect();
   r.bandH = bandBox.height;
   r.containerH = containerBox.height;
+  r.containerPadTop = getComputedStyle(container).paddingTop;
+  r.contentTop = content.getBoundingClientRect().top - (
+    containerBox.top + (parseFloat(getComputedStyle(container).borderTopWidth) || 0));
+  r.backAccent = getComputedStyle(document.querySelector('.back-card'))
+    .getPropertyValue('--accent-color').trim();
   r.bandPosition = bandStyle.position;
   r.bandClip = bandStyle.clipPath;
   r.bandMask = bandStyle.maskImage;
@@ -141,6 +146,8 @@ SCENIC_PROBE = r"""(() => {
     (bandBox.left + bandBox.right) / 2, (bandBox.top + bandBox.bottom) / 2);
   r.leftHit = hitClass(leftHit);
   r.rightHit = hitClass(rightHit);
+  r.leftInPhoto = !!(leftHit && leftHit.closest && leftHit.closest('.scenic-photo'));
+  r.rightInPhoto = !!(rightHit && rightHit.closest && rightHit.closest('.scenic-photo'));
   r.centerInBand = !!(centerHit && centerHit.closest && centerHit.closest('.scenic-band'));
   const scene = band.querySelector('.scenic-scene');
   r.sceneDisplay = scene ? getComputedStyle(scene).display : null;
@@ -152,6 +159,7 @@ SCENIC_PROBE = r"""(() => {
     r.photoChildDisplay = getComputedStyle(source).display;
     r.filter = getComputedStyle(source).filter;
     r.tintBlend = getComputedStyle(photo.querySelector('.tint')).mixBlendMode;
+    r.tintColor = getComputedStyle(photo.querySelector('.tint')).backgroundColor;
     photo.click();
     let overlay = document.querySelector('.lightbox-overlay');
     const clone = overlay && overlay.querySelector('.expanded-img');
@@ -467,14 +475,20 @@ def main() -> int:
         and "height: auto" in wide_band
         and "margin: 0" in wide_band
         and "clip-path: url(#scenic-side-clip)" in wide_band
-        and "mask-image: linear-gradient" in wide_band
+        and "mask-image" not in wide_band
         and "background: var(--scenic-sky)" in wide_band,
     )
     check(
-        "CSS: wide rails hide the top scene but keep the trigger",
-        ".scenic-band .scenic-scene" in wide
-        and ".scenic-band .scenic-photo > *" in wide
+        "CSS: wide rails keep the photo pipeline and fallback scene visible",
+        ".scenic-band .scenic-scene" not in wide
+        and ".scenic-band .scenic-photo > *" not in wide
+        and ".scenic-band .scenic-photo .fade" in wide
         and "display: none" in wide,
+    )
+    wide_pad = rule_body(wide, r"\.back-card \.card-container")
+    check(
+        "CSS: wide card reclaims the scenic top padding",
+        wide_pad is not None and "padding-top: 0" in wide_pad,
     )
     fade_pseudos = re.search(
         r"\.scenic-band::before,\s*\.scenic-band::after\s*\{([^}]*)\}", wide
@@ -533,6 +547,14 @@ def main() -> int:
             )
             check("Browser: phone photo mode has no horizontal overflow", photo_mobile.get("noOverflow") is True)
             check(
+                "Browser: phone back-card controls use the cool accent",
+                photo_mobile.get("backAccent") == "#a394f0",
+            )
+            check(
+                "Browser: phone keeps the scenic top padding",
+                float(photo_mobile.get("containerPadTop", "0").replace("px", "")) > 0,
+            )
+            check(
                 "Browser: phone sentence context uses the full grid width",
                 photo_mobile.get("contextRatio", 0) >= 0.98,
             )
@@ -578,30 +600,40 @@ def main() -> int:
         check("Browser: wide-pane photo probe returned", photo_wide is not None)
         if photo_wide:
             check(
-                "Browser: wide band leaves flow and fills the card",
+                "Browser: wide band leaves flow, fills the card, and starts at the top",
                 photo_wide.get("first") is True
                 and photo_wide.get("bandPosition") == "absolute"
                 and photo_wide.get("wrapperFill") is True
                 and abs(photo_wide.get("bandH", 0) - photo_wide.get("containerH", 0)) <= 3
-                and -1 <= photo_wide.get("bandFlow", 99) <= 1,
+                and -1 <= photo_wide.get("bandFlow", 99) <= 1
+                and photo_wide.get("containerPadTop") == "0px"
+                and photo_wide.get("contentTop", 99) <= 1,
             )
             check(
-                "Browser: wide band is clipped to two cool-sky rails",
+                "Browser: wide band is clipped to two full-height rails",
                 "scenic-side-clip" in photo_wide.get("bandClip", "")
-                and photo_wide.get("bandMask") not in (None, "none")
+                and photo_wide.get("bandMask") == "none"
                 and "gradient" in photo_wide.get("bandBackground", "")
                 and photo_wide.get("railPseudoW", 0) >= 45,
             )
             check(
-                "Browser: wide rails hide the scene but keep the trigger",
-                photo_wide.get("photoChildDisplay") == "none"
+                "Browser: wide rails keep the blurred photo and the trigger",
+                photo_wide.get("photoChildDisplay") == "block"
+                and "saturate(0.8)" in photo_wide.get("filter", "")
+                and "blur(16px)" in photo_wide.get("filter", "")
+                and photo_wide.get("tintBlend") == "overlay"
                 and photo_wide.get("role") == "button"
                 and photo_wide.get("tabIndex") == 0,
             )
             check(
+                "Browser: wide back-card controls use the cool accent, photo stays warm",
+                photo_wide.get("backAccent") == "#a394f0"
+                and photo_wide.get("tintColor") == "rgb(224, 122, 95)",
+            )
+            check(
                 "Browser: wide rail hit-testing keeps one lightbox target",
-                "scenic-photo" in photo_wide.get("leftHit", "")
-                and "scenic-photo" in photo_wide.get("rightHit", "")
+                photo_wide.get("leftInPhoto") is True
+                and photo_wide.get("rightInPhoto") is True
                 and photo_wide.get("centerInBand") is False,
             )
             check(
@@ -630,16 +662,18 @@ def main() -> int:
         check("Browser: wide fallback probe returned", fallback_wide is not None)
         if fallback_wide:
             check(
-                "Browser: wide fallback renders decorative, non-focusable rails",
+                "Browser: wide fallback renders the scene in decorative rails",
                 fallback_wide.get("first") is True
                 and fallback_wide.get("contentSecond") is True
                 and fallback_wide.get("bandPosition") == "absolute"
                 and "scenic-side-clip" in fallback_wide.get("bandClip", "")
+                and fallback_wide.get("bandMask") == "none"
                 and fallback_wide.get("railPseudoW", 0) >= 45
                 and fallback_wide.get("fallbackAria") == "true"
                 and fallback_wide.get("fallbackFocusable") is False
                 and "gradient" in fallback_wide.get("fallbackBackground", "")
-                and fallback_wide.get("sceneDisplay") == "none"
+                and fallback_wide.get("sceneDisplay") == "block"
+                and fallback_wide.get("backAccent") == "#b84a39"
                 and "scenic-photo" not in fallback_wide.get("leftHit", ""),
             )
 

@@ -96,8 +96,9 @@ Single quiet column with typography-driven hierarchy:
 ```text
 card-container
  ├── .scenic-band (narrow: photo-derived when Picture exists, else the
- │    aria-hidden Fuji/cloud-sea fallback; wide ≥1000px: absolute cool-sky
- │    side rails clipped by #scenic-side-clip. One photo trigger/lightbox.)
+ │    aria-hidden Fuji/cloud-sea fallback; wide ≥1000px: absolute full-height
+ │    side rails with the same photo/fallback treatment, clipped by
+ │    #scenic-side-clip. One photo trigger/lightbox.)
  └── .card-content (wide: relative, above the absolute band)
       ├── .hero-header (3-col grid: left meta | centered word | right meta;
       │    │  stacked word-over-sides on phones)
@@ -195,9 +196,11 @@ entity graph exists beyond what is shown.
   the apkg headlessly, `finish.sh` stops at tag push, and `release.yml`
   publishes from CI — the desktop never uploads the asset.
 - **008** Wide-card side rails (ADR 005/006 amended): at a ≥1000px card
-  container the top scenic band leaves the flow and is clipped into two quiet
-  cool-sky rails; phones and narrow panes keep the top band unchanged. One
-  `Picture` reference and one lightbox/focus stop are preserved.
+  container the top scenic band leaves the flow (with the container's top
+  padding) and is clipped into two quiet full-height rails that keep the
+  blurred photo/fallback treatment; the dark card's controls take the cool
+  blue/purple accent. Phones and narrow panes keep the top band unchanged.
+  One `Picture` reference and one lightbox/focus stop are preserved.
 
 ## Evolution rule
 

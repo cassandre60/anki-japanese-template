@@ -92,6 +92,7 @@
   --scenic-star-op: .8;
   --scenic-band-h: clamp(44px, 12.5vw, 58px);
   --scenic-rail-w: 4%;
+  --scenic-tint-color: #e07a5f;
   --scenic-blur: 16px;
   --scenic-sat: 0.8;
   --scenic-tint: 0.25;
@@ -131,6 +132,7 @@
 
   /* Scenic Band (Yūkei) Tokens — Aki Paper light override */
   --scenic-sky: linear-gradient(180deg,#f6c69b 0%,#f0a08a 42%,#d98a95 72%,#b8879c 100%);
+  --scenic-tint-color: #b84a39;
   --scenic-fuji: #5b4a6b;
   --scenic-snow: #fbeadf;
   --scenic-cloud: #fbe7d8;
@@ -156,10 +158,31 @@
 
   /* Scenic Band (Yūkei) Tokens — Explicit dark theme */
   --scenic-sky: linear-gradient(180deg,#171a33 0%,#23274a 42%,#33284f 72%,#402b46 100%);
+  --scenic-tint-color: #e07a5f;
   --scenic-fuji: #100e1c;
   --scenic-snow: #d8d3e8;
   --scenic-cloud: #2c2f52;
   --scenic-star-op: .8;
+}
+
+/* Back-card control accent — the cool Yūkei palette. Scoped to the dark
+   theme (the maintainer's reviewer); the warm washi light theme keeps its
+   own accent. The photo tint stays warm via --scenic-tint-color, so the
+   blurred picture reads exactly as it did in the top band. */
+.card.nightMode .back-card,
+.card.night_mode .back-card {
+  --accent-color: #a394f0;
+  --accent-light: rgba(163, 148, 240, 0.16);
+  --accent-soft: rgba(163, 148, 240, 0.28);
+  --accent-glow: 0 0 20px rgba(163, 148, 240, 0.28);
+  --separator-accent: rgba(163, 148, 240, 0.20);
+}
+
+/* Keep the resting audio labels visibly in the cool palette too; the
+   hover/focus rules still brighten them to --accent-color. */
+.card.nightMode .back-card .small-audio-btn .audio-btn-label,
+.card.night_mode .back-card .small-audio-btn .audio-btn-label {
+  color: #b9adf7;
 }
 
 
@@ -1971,7 +1994,7 @@ ruby:focus-within rt {
 
 .scenic-photo .tint {
   position: absolute; inset: 0;
-  background: var(--accent-color);
+  background: var(--scenic-tint-color, var(--accent-color));
   mix-blend-mode: overlay;
   opacity: var(--scenic-tint);
 }
@@ -2008,10 +2031,10 @@ ruby:focus-within rt {
 /* ==============================================================================
    17b. WIDE-CARD SIDE RAILS
    On a wide reviewer pane the scenic band leaves the flow and becomes two
-   quiet side rails: one full-card layer clipped by an SVG path and filled
-   with the cool Yūkei sky (ADR 008). The illustrated fallback and the photo
-   are both hidden there — the rails are the same calm gradient on every card.
-   Below 1000px the top band in §17 is untouched.
+   full-height side rails: one full-card layer clipped by an SVG path. The
+   photo band keeps its original blurred-picture treatment inside the rails;
+   an empty Picture field keeps the illustrated Yūkei fallback. Below 1000px
+   the top band in §17 is untouched.
    ============================================================================== */
 
 /* The clip-path definition box must not consume band height: .scenic-band svg
@@ -2024,6 +2047,13 @@ ruby:focus-within rt {
 }
 
 @container anki-card (min-width: 1000px) {
+  /* The band no longer paints a strip above the content, so its top-padding
+     share is reclaimed too: the hero's own furigana headroom remains the only
+     reserved space above the word. */
+  .back-card .card-container {
+    padding-top: 0;
+  }
+
   .back-card .card-container > .scenic-band {
     position: absolute;
     inset: 0;
@@ -2036,14 +2066,15 @@ ruby:focus-within rt {
     /* Mirrors the two rects in the template's #scenic-side-clip
        (0 → 0.04 and 0.96 → 1), i.e. --scenic-rail-w per side. */
     clip-path: url(#scenic-side-clip);
-    -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 10%, #000 90%, transparent 100%);
-    mask-image: linear-gradient(to bottom, transparent 0, #000 10%, #000 90%, transparent 100%);
+    /* No vertical mask: the rails run to the card's top edge. The card's
+       own rounded clipping handles the corners. */
   }
 
-  /* The top scene is not part of the rail composition. The photo trigger
-     itself stays: it keeps the single lightbox target and focus stop. */
-  .scenic-band .scenic-scene,
-  .scenic-band .scenic-photo > * {
+  /* The original photo pipeline now paints inside the clipped rails. The
+     full-height photo fade was designed for a 70px strip and would erase
+     most of the picture at this height, so the rails keep tint/grain/wash
+     and drop only the bottom fade. */
+  .scenic-band .scenic-photo .fade {
     display: none;
   }
 

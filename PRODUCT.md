@@ -90,8 +90,10 @@ off-screen context to be solvable is a bad mine and should be re-mined.
   failure path.
 - Back hierarchy: a compact Yūkei scenic band on phone/narrow panes (the
   card's `Picture` when present, otherwise a decorative Fuji/cloud-sea
-  fallback), replaced on wide desktop panes by two quiet full-height cool-sky
-  side rails (ADR 008); then the word/furigana target with Japanese seal,
+  fallback), replaced on wide desktop panes by two quiet full-height side
+  rails that keep the same blurred photo/fallback treatment (ADR 008), with
+  the dark card's controls in the matching cool blue/purple accent; then the
+  word/furigana target with Japanese seal,
   5-star frequency visualizer and pitch accent, compacted primary definition
   (§6b), sentence context, native circular audio (`文`/`言葉`), secondary
   information toggleable behind `More ▾` / `Less ▴` (translation, context,
@@ -122,8 +124,9 @@ off-screen context to be solvable is a bad mine and should be re-mined.
   empty space on the front is acceptable — never filled with UI.
 - Fluid `clamp()`/vw sizing phone → 4K; a compact scenic band spans the card
   top on phones and narrow reviewer panes, while wide desktop panes reclaim
-  that vertical strip and render two subtle side rails instead (ADR 008).
-  Sentence context remains full-width below either treatment.
+  that vertical strip (including the container's top padding) and render the
+  picture as two subtle full-height side rails instead (ADR 008). Sentence
+  context remains full-width below either treatment.
 - Zero-reflow reveal: hidden furigana is `visibility:hidden` (not
   `display:none`), so hover/tap and `F` mode never shift geometry. The
   hero and sentence both use native ruby (`display:ruby` / `ruby-text`,

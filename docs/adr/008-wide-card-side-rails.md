@@ -49,23 +49,33 @@ Two further constraints shaped the implementation:
   the §17 top band is untouched; this includes narrow desktop panes.
 - **Geometry:** on wide cards `.scenic-band` becomes `position: absolute;
   inset: 0; height: auto; margin: 0; z-index: 0`. It leaves the flow entirely,
-  so the content starts at the card's normal top padding.
+  and `.back-card .card-container` sets `padding-top: 0`, so the content
+  begins at the card's inner top edge. The band has no vertical mask: both
+  rails run the full card height, and the card's existing rounded clipping
+  handles the corners.
 - **Rails:** one inline `<clipPath id="scenic-side-clip">` per band branch,
   with rects `0 → 0.04` and `0.96 → 1` (`objectBoundingBox`). The 4% token is
   `--scenic-rail-w`; at a 1360px card that is ~54px per side, deliberately
-  larger than the earlier 3% prototype. A vertical mask fades both rail ends;
-  `::before` / `::after` gradients fade each rail's inner edge into the card
-  surface, so only the outer ~60% reads as colour.
-- **Colour:** the wide rails always use the cool `--scenic-sky` gradient (the
-  ADR 005 fallback look), not the photo-derived warm strip. The maintainer
-  preferred that calm blue/purple palette and asked for it going forward. In
-  the light theme the token resolves to the theme's warm sky, preserving the
-  existing dual-theme system.
-- **Photo:** the on-card photo/scene is hidden on wide cards; the photo
-  trigger itself stays alive and transparent, keeping the lightbox access and
-  the single focus stop. Its keyboard ring is inset (`outline-offset: -4px`)
-  so the clipped rails still show focus; focusing the trigger also brightens
-  the rails.
+  larger than the earlier 3% prototype. `::before` / `::after` gradients fade
+  each rail's inner edge into the card surface, so only its outer ~60% reads
+  as colour.
+- **Picture treatment:** the rails keep the ADR 006 photo pipeline — the
+  blurred, desaturated source with its tint/grain/wash — so the blurred
+  picture is still visible on wide cards. Only `.scenic-photo .fade` is
+  hidden: its bottom falloff was designed for a 70px strip and would erase
+  most of a full-height picture. An empty `Picture` keeps the illustrated
+  Yūkei scene in the rails. The photo tint stays warm through
+  `--scenic-tint-color` (`#e07a5f` dark, `#b84a39` light).
+- **Controls:** the dark back card adopts the cool blue/purple accent
+  (`--accent-color: #a394f0`, with matching light/soft/glow tokens) and
+  resting audio labels at `#b9adf7`, so the card's buttons match the rails.
+  The override is scoped to `.card.nightMode .back-card` / `.night_mode`;
+  the warm washi light theme keeps its warm accent, and the front card is
+  untouched. Frequency stars keep their semantic tier colours.
+- **Photo trigger:** the existing trigger still fills the layer, keeping the
+  lightbox access and the single focus stop. Its keyboard ring is inset
+  (`outline-offset: -4px`) so the clipped rails still show focus; focusing
+  the trigger also brightens the rails.
 - **Content layer:** everything after the band is wrapped in
   `.card-content` (`position: relative; z-index: 1`) so the card content paints
   above the absolute band. The wrapper has no other styles; narrow layouts are
@@ -75,19 +85,26 @@ Two further constraints shaped the implementation:
 
 ## Consequences
 
-- Wide desktop cards reclaim the band's ~34–40px flow cost; the rails occupy
-  the existing side padding and the faded inner edge does not cross the
-  content area.
+- Wide desktop cards reclaim the band's flow cost **and** the container's top
+  padding: content starts at the card's inner top edge, with only the hero's
+  furigana headroom reserved above the word. The rails run full height, inside
+  the existing card edges; the faded inner edge does not cross the content
+  area.
+- The blurred picture (or the illustrated fallback) remains visible on wide
+  cards, now as two quiet full-height rails. The card keeps its visual
+  identity and its lightbox affordance instead of trading the photo for a flat
+  gradient.
+- The dark back card's controls now share the cool blue/purple accent of the
+  rails. The light washi theme and the front card keep their warm accent, and
+  the warm photo tint is unchanged, so the picture still reads as before.
 - Mobile and narrow reviewer panes keep the ADR 005/006 top band, photo
-  pipeline, and full-width lightbox target. Existing mobile contracts remain
-  valid.
-- The card-derived photo is no longer visible on wide cards, but it is still
-  one click/Enter away in the lightbox; the rails are the quiet decorative
-  surface instead.
+  pipeline, and full-width lightbox target byte-for-byte. Existing mobile
+  contracts remain valid.
 - `tests/test_yukei.py` gains wide-card contracts (absolute zero-flow band,
-  clip/mask, cool gradient, rail hit-testing, hidden scene, inset focus CSS,
-  content layer) and a narrow-pane regression (900px keeps the top band).
-  The mobile contracts continue to run unchanged.
+  full-height clip with no vertical mask, visible photo/scene pipeline, warm
+  tint, reclaimed top padding, cool dark-theme accent, rail hit-testing,
+  inset focus CSS, content layer) and a narrow-pane regression (900px keeps
+  the top band). The mobile contracts continue to run unchanged.
 - The breakpoint is a judgement call: 1000px is wide enough for two rails plus
   a readable centre column, and low enough for common maximized desktop
   reviewer panes. Revisit only with a layout-probe proof.
