@@ -91,6 +91,7 @@
   --scenic-cloud: #2c2f52;
   --scenic-star-op: .8;
   --scenic-band-h: clamp(44px, 12.5vw, 58px);
+  --scenic-rail-w: 4%;
   --scenic-blur: 16px;
   --scenic-sat: 0.8;
   --scenic-tint: 0.25;
@@ -2002,3 +2003,85 @@ ruby:focus-within rt {
     animation: none !important;
   }
 }
+
+
+/* ==============================================================================
+   17b. WIDE-CARD SIDE RAILS
+   On a wide reviewer pane the scenic band leaves the flow and becomes two
+   quiet side rails: one full-card layer clipped by an SVG path and filled
+   with the cool Yūkei sky (ADR 008). The illustrated fallback and the photo
+   are both hidden there — the rails are the same calm gradient on every card.
+   Below 1000px the top band in §17 is untouched.
+   ============================================================================== */
+
+/* The clip-path definition box must not consume band height: .scenic-band svg
+   above is sized 100% × 100%, and this SVG is the band's first child. */
+.scenic-band .scenic-side-defs {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+@container anki-card (min-width: 1000px) {
+  .back-card .card-container > .scenic-band {
+    position: absolute;
+    inset: 0;
+    width: auto;
+    height: auto;
+    margin: 0;
+    border-radius: 0;
+    z-index: 0;
+    background: var(--scenic-sky);
+    /* Mirrors the two rects in the template's #scenic-side-clip
+       (0 → 0.04 and 0.96 → 1), i.e. --scenic-rail-w per side. */
+    clip-path: url(#scenic-side-clip);
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 10%, #000 90%, transparent 100%);
+    mask-image: linear-gradient(to bottom, transparent 0, #000 10%, #000 90%, transparent 100%);
+  }
+
+  /* The top scene is not part of the rail composition. The photo trigger
+     itself stays: it keeps the single lightbox target and focus stop. */
+  .scenic-band .scenic-scene,
+  .scenic-band .scenic-photo > * {
+    display: none;
+  }
+
+  /* Inner-edge falloff: each rail dissolves into the card surface. The fade
+     covers the whole rail, so only its outer ~60% reads as colour. */
+  .scenic-band::before,
+  .scenic-band::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: var(--scenic-rail-w, 4%);
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  .scenic-band::before {
+    left: 0;
+    background: linear-gradient(to right, transparent 35%, var(--card-bg) 100%);
+  }
+
+  .scenic-band::after {
+    right: 0;
+    background: linear-gradient(to left, transparent 35%, var(--card-bg) 100%);
+  }
+
+  .card-content {
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Keep the full-card trigger's keyboard ring inside the clipped rails. */
+  .scenic-band .scenic-photo-trigger:focus-visible {
+    outline-offset: -4px;
+  }
+
+  .scenic-band:has(.scenic-photo-trigger:focus-visible) {
+    filter: brightness(1.25) saturate(1.1);
+  }
+}
+

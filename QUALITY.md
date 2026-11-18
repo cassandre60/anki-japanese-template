@@ -77,17 +77,25 @@ mechanically verified*. Code implements; tests enforce.
 
 ## Back invariants
 
-- Back hierarchy is typography-driven: compact scenic band → word-display
-  (largest, with Japanese seal) → metadata bar (5-star frequency visualizer &
-  pitch accent & audio) → primary meaning → context → secondary collapsed
-  behind More. Features discoverable via shortcut hints.
-- `Picture` is referenced exactly once in the back template. A populated field
-  renders the card-derived scenic photo and keeps click/Enter lightbox access;
-  an empty field renders the non-focusable, `aria-hidden` illustrated fallback.
-  The retired `.context-picture` markup is absent, so sentence context is
-  full-width. The photo pipeline preserves source color with `saturate()` and
-  `mix-blend-mode: overlay`; it must never use `grayscale()` +
-  `mix-blend-mode: color`.
+- Back hierarchy is typography-driven: compact scenic band or wide side
+  rails → word-display (largest, with Japanese seal) → metadata bar (5-star
+  frequency visualizer & pitch accent & audio) → primary meaning → context →
+  secondary collapsed behind More. Features discoverable via shortcut hints.
+- `Picture` is referenced exactly once in the back template. On phone/narrow
+  panes a populated field renders the card-derived scenic photo and keeps
+  click/Enter lightbox access; an empty field renders the non-focusable,
+  `aria-hidden` illustrated fallback. On wide panes (container ≥1000px) the
+  band leaves the flow and is clipped into two cool-sky side rails; the photo
+  trigger stays as the single focusable lightbox target even though the photo
+  itself is not painted there. The retired `.context-picture` markup is absent,
+  so sentence context is full-width. The narrow photo pipeline preserves
+  source color with `saturate()` and `mix-blend-mode: overlay`; it must never
+  use `grayscale()` + `mix-blend-mode: color`.
+- Wide panes (container ≥1000px) must not spend vertical flow on the scenic
+  treatment: the band becomes two clipped side rails inside the existing card
+  edges, content paints above them, and the single photo trigger remains the
+  one lightbox/focus stop. Below 1000px the top band, photo pipeline, and
+  full-width lightbox target must render exactly as before.
 - Secondary information (translation, context, kanji notes, notes, source,
   full extended definition) lives inside `.more-section`, toggleable via
   `More ▾` / `Less ▴`; the toggle and section self-remove when no secondary

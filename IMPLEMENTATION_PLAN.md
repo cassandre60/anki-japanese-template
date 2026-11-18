@@ -195,6 +195,18 @@ T2/T3 are parallelizable; T4 needs T2; T5 needs T3.
   references resolve, integrity clean). Stuck v1.8.79 draft deleted with
   its tag; `release_apkg.py` retired (§9 guards the absence).
 
+- **T19 — Wide-card scenic side rails (ADR 008).** Desktop-only presentation
+  change for the back card: at `@container anki-card (min-width: 1000px)` the
+  scenic band leaves the flow and is clipped into two cool-sky side rails
+  (`#scenic-side-clip`, 4% each, `--scenic-rail-w`), with `.card-content`
+  wrapped above it. Phones and narrow reviewer panes keep the ADR 005/006 top
+  band, photo pipeline, and lightbox target unchanged. One `Picture`
+  reference and one focus stop are preserved. `tests/test_yukei.py` now
+  probes phone (412), narrow pane (900), and wide pane (1440) layouts plus
+  rail hit-testing, zero flow, clip/mask, and fallback behavior.
+  Status: IN PROGRESS — `./verify` green (65/65 Yūkei checks); synced to Anki
+  for visual confirmation; full release run pending.
+
 ## Roadmap (evolution loop input, not committed scope)
 
 - R1: extra compactor fixtures if Yomitan markup drifts.

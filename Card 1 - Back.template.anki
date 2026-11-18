@@ -26,6 +26,16 @@
 
     {{#Picture}}
     <div class="scenic-band">
+      <!-- Wide-card clip: turns the full-card band into two side rails
+           (Style §17b). One Picture reference, one focus stop. -->
+      <svg class="scenic-side-defs" width="0" height="0" aria-hidden="true" focusable="false">
+        <defs>
+          <clipPath id="scenic-side-clip" clipPathUnits="objectBoundingBox">
+            <rect x="0" y="0" width="0.04" height="1"/>
+            <rect x="0.96" y="0" width="0.04" height="1"/>
+          </clipPath>
+        </defs>
+      </svg>
        <div class="scenic-photo scenic-photo-trigger"
            onclick="openLightbox(this)" role="button" tabindex="0"
            aria-label="画像を拡大"
@@ -40,7 +50,15 @@
     {{/Picture}}
     {{^Picture}}
     <div class="scenic-band" aria-hidden="true">
-      <svg viewBox="0 0 400 60" preserveAspectRatio="none" focusable="false">
+      <svg class="scenic-side-defs" width="0" height="0" focusable="false">
+        <defs>
+          <clipPath id="scenic-side-clip" clipPathUnits="objectBoundingBox">
+            <rect x="0" y="0" width="0.04" height="1"/>
+            <rect x="0.96" y="0" width="0.04" height="1"/>
+          </clipPath>
+        </defs>
+      </svg>
+      <svg class="scenic-scene" viewBox="0 0 400 60" preserveAspectRatio="none" focusable="false">
         <circle class="scenic-star" cx="70" cy="8" r="1.1" fill="#fff"/>
         <circle class="scenic-star" cx="330" cy="6" r="1" fill="#fff"/>
         <circle class="scenic-star" cx="40" cy="16" r=".9" fill="#fff"/>
@@ -58,6 +76,8 @@
       </svg>
     </div>
     {{/Picture}}
+
+    <div class="card-content">
 
     <!-- LEVEL 1: TARGET + META — 3-column grid on wide screens
          (left meta | centered word | right meta; see Style §6 hero-header).
@@ -254,6 +274,8 @@
       <button type="button" class="shortcut-item" data-shortcut="x" title="訳 (X)"><kbd>X</kbd> 訳</button>
       <button type="button" class="shortcut-item" data-shortcut="c" title="展開 (C)"><kbd>C</kbd> 展開</button>
     </div>
+
+    </div> <!-- End card-content -->
 
   </div> <!-- End card-container -->
 </div>

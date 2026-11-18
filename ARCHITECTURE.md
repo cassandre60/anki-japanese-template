@@ -95,25 +95,27 @@ Single quiet column with typography-driven hierarchy:
 
 ```text
 card-container
- ├── .scenic-band (photo-derived when Picture exists; aria-hidden
- │    Fuji/cloud-sea fallback otherwise; click/Enter opens the lightbox)
- ├── .hero-header (3-col grid: left meta | centered word | right meta;
- │    │  stacked word-over-sides on phones)
- │    ├── .hero-side-left (freq visualizer + 言葉 audio)
- │    ├── .hero-word-wrap > .word-display (target + per-kanji furigana —
- │    │    native ruby, 0.55em rt with space-around/palt/start alignment;
- │    │    a long reading expands its base slot, never overlaps a neighbour)
- │    └── .hero-side-right (.pitch-quiet + 文 audio)
- ├── definition-box.primary-definition (compacted §6b, 3-line §6c)
- ├── .context-grid (full-width sentence/context surface;
- │    `.sentence-japanese` uses native ruby with browser-default 0.5em rt
- │    + "palt" small-kana metrics (card accent colour) and distributes
- │    grouped readings per base character with start-aligned `rt`; its
- │    type scale is bumped ~+11% (desktop cap 2.05rem, mobile 3.9vmin)
- ├── .more-section (hidden) + .more-toggle "More ▾"
- │    └── translation (click/T) · context · kanji notes · notes · source
- │        (.source-footer) · full extended definition (.extended-full —
- │        compactor never touches it)
+ ├── .scenic-band (narrow: photo-derived when Picture exists, else the
+ │    aria-hidden Fuji/cloud-sea fallback; wide ≥1000px: absolute cool-sky
+ │    side rails clipped by #scenic-side-clip. One photo trigger/lightbox.)
+ └── .card-content (wide: relative, above the absolute band)
+      ├── .hero-header (3-col grid: left meta | centered word | right meta;
+      │    │  stacked word-over-sides on phones)
+      │    ├── .hero-side-left (freq visualizer + 言葉 audio)
+      │    ├── .hero-word-wrap > .word-display (target + per-kanji furigana —
+      │    │    native ruby, 0.55em rt with space-around/palt/start alignment;
+      │    │    a long reading expands its base slot, never overlaps a neighbour)
+      │    └── .hero-side-right (.pitch-quiet + 文 audio)
+      ├── definition-box.primary-definition (compacted §6b, 3-line §6c)
+      ├── .context-grid (full-width sentence/context surface;
+      │    `.sentence-japanese` uses native ruby with browser-default 0.5em rt
+      │    + "palt" small-kana metrics (card accent colour) and distributes
+      │    grouped readings per base character with start-aligned `rt`; its
+      │    type scale is bumped ~+11% (desktop cap 2.05rem, mobile 3.9vmin)
+      ├── .more-section (hidden) + .more-toggle "More ▾"
+      │    └── translation (click/T) · context · kanji notes · notes · source
+      │        (.source-footer) · full extended definition (.extended-full —
+      │        compactor never touches it)
 ```
 
 JS controllers (all idempotent under WebView DOM re-use): More toggle (one-way reveal;
@@ -143,7 +145,8 @@ touch targets),
 §12 listening (inert until `.listening-mode`), §13 mobile,
 §14 deletable Fuji backdrop, §15 reduced motion (+ blur kill),
 §16 card entrance (single 0.15s settle, no stagger; killed by §15),
-§17 Yūkei scenic band (photo mode with illustrated fallback).
+§17 Yūkei scenic band (photo mode with illustrated fallback; wide-pane
+side rails under §17b).
 
 ### Tooling
 
@@ -191,6 +194,10 @@ entity graph exists beyond what is shown.
   content (`samples/` derived from the live deck), a stdlib builder produces
   the apkg headlessly, `finish.sh` stops at tag push, and `release.yml`
   publishes from CI — the desktop never uploads the asset.
+- **008** Wide-card side rails (ADR 005/006 amended): at a ≥1000px card
+  container the top scenic band leaves the flow and is clipped into two quiet
+  cool-sky rails; phones and narrow panes keep the top band unchanged. One
+  `Picture` reference and one lightbox/focus stop are preserved.
 
 ## Evolution rule
 

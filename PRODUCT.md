@@ -88,13 +88,14 @@ off-screen context to be solvable is a bad mine and should be re-mined.
   interval-gated word-only front. Normal cards NEVER render or play audio
   on the front. The sentence front is the universal fallback for every
   failure path.
-- Back hierarchy: a compact Yūkei scenic band (the card's `Picture` when
-  present, otherwise a decorative Fuji/cloud-sea fallback), then the
-  word/furigana target with Japanese seal, 5-star frequency visualizer and
-  pitch accent, compacted primary definition (§6b), sentence context, native
-  circular audio (`文`/`言葉`),
-  secondary information toggleable behind `More ▾` / `Less ▴` (translation,
-  context, kanji notes, notes, source, full extended definition), keyboard shortcuts
+- Back hierarchy: a compact Yūkei scenic band on phone/narrow panes (the
+  card's `Picture` when present, otherwise a decorative Fuji/cloud-sea
+  fallback), replaced on wide desktop panes by two quiet full-height cool-sky
+  side rails (ADR 008); then the word/furigana target with Japanese seal,
+  5-star frequency visualizer and pitch accent, compacted primary definition
+  (§6b), sentence context, native circular audio (`文`/`言葉`), secondary
+  information toggleable behind `More ▾` / `Less ▴` (translation, context,
+  kanji notes, notes, source, full extended definition), keyboard shortcut
   hints. Content hierarchy communicates card structure directly.
 - Mature Word Mode (desktop only): interval resolved at render time via a
   fallback-only AnkiConnect content search (Expression → Sentence →
@@ -120,8 +121,9 @@ off-screen context to be solvable is a bad mine and should be re-mined.
 - Ultra-compact, content-driven height (no viewport fill, no dead space);
   empty space on the front is acceptable — never filled with UI.
 - Fluid `clamp()`/vw sizing phone → 4K; a compact scenic band spans the card
-  top on desktop and phones, while sentence context remains full-width
-  below it.
+  top on phones and narrow reviewer panes, while wide desktop panes reclaim
+  that vertical strip and render two subtle side rails instead (ADR 008).
+  Sentence context remains full-width below either treatment.
 - Zero-reflow reveal: hidden furigana is `visibility:hidden` (not
   `display:none`), so hover/tap and `F` mode never shift geometry. The
   hero and sentence both use native ruby (`display:ruby` / `ruby-text`,

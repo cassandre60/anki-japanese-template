@@ -57,8 +57,17 @@ def extract_open_lightbox(source: str) -> str:
 
 def scenic_fixture(css: str, open_lightbox: str, mode: str) -> str:
     theme = " nightMode" if mode == "photo" else ""
+    defs = """<svg class="scenic-side-defs" width="0" height="0" aria-hidden="true" focusable="false">
+    <defs>
+      <clipPath id="scenic-side-clip" clipPathUnits="objectBoundingBox">
+        <rect x="0" y="0" width="0.04" height="1"/>
+        <rect x="0.96" y="0" width="0.04" height="1"/>
+      </clipPath>
+    </defs>
+  </svg>"""
     if mode == "photo":
         band = """<div class="scenic-band">
+  """ + defs + """
   <div class="scenic-photo scenic-photo-trigger" onclick="openLightbox(this)"
        role="button" tabindex="0" aria-label="画像を拡大"
        onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault(); this.click()}">
@@ -68,7 +77,8 @@ def scenic_fixture(css: str, open_lightbox: str, mode: str) -> str:
 </div>"""
     else:
         band = """<div class="scenic-band" aria-hidden="true">
-  <svg viewBox="0 0 400 60" preserveAspectRatio="none" focusable="false">
+  """ + defs + """
+  <svg class="scenic-scene" viewBox="0 0 400 60" preserveAspectRatio="none" focusable="false">
     <circle class="scenic-star" cx="70" cy="8" r="1.1" fill="#fff"/>
     <circle class="scenic-glow" cx="232" cy="18" r="15" fill="var(--accent-color)"/>
     <path d="M156,42 L185,2 L204,26 L211,23 L216,42 Z" fill="var(--scenic-fuji)"/>
@@ -76,41 +86,70 @@ def scenic_fixture(css: str, open_lightbox: str, mode: str) -> str:
     <path d="M0,54 C60,50 130,56 210,52 C290,48 340,55 400,51 L400,60 L0,60 Z" fill="var(--card-bg)"/>
   </svg>
 </div>"""
-    return """<!doctype html><html><head><meta charset="utf-8">
+    return ("""<!doctype html><html><head><meta charset="utf-8">
 <style>html,body{margin:0;padding:0}""" + css + """</style></head><body>
-<div class="card""" + theme + """><div class="card-wrapper back-card"><div class="card-container">
-""" + band + """
+<div class="card""" + theme + '"><div class="card-wrapper back-card"><div class="card-container">\n'
+            + band + """
+<div class="card-content">
 <div class="hero-header"><div class="hero-side hero-side-left"></div><div class="hero-word-wrap"><div class="word-display">名将</div></div><div class="hero-side hero-side-right"></div></div>
 <div class="context-grid"><div class="context-main"><div class="sentence-japanese">文脈を読む。</div></div></div>
+</div>
 </div></div></div>
 <script>""" + open_lightbox + """;</script>
-</body></html>"""
+</body></html>""")
 
 
 SCENIC_PROBE = r"""(() => {
   const r = {};
   const container = document.querySelector('.card-container');
   const band = document.querySelector('.scenic-band');
+  const content = document.querySelector('.card-content');
   const context = document.querySelector('.context-grid');
   const main = document.querySelector('.context-main');
+  const hero = document.querySelector('.hero-header');
+  const bandStyle = getComputedStyle(band);
+  const hitClass = (el) => el ? (typeof el.className === 'string' ? el.className : el.getAttribute('class') || '') : '';
   r.first = container.firstElementChild === band;
+  r.contentSecond = container.children[1] === content;
   const bandBox = band.getBoundingClientRect();
   const containerBox = container.getBoundingClientRect();
+  const heroBox = hero.getBoundingClientRect();
   r.bandH = bandBox.height;
+  r.containerH = containerBox.height;
+  r.bandPosition = bandStyle.position;
+  r.bandClip = bandStyle.clipPath;
+  r.bandMask = bandStyle.maskImage;
+  r.bandBackground = bandStyle.backgroundImage;
+  r.railPseudoW = parseFloat(getComputedStyle(band, '::before').width) || 0;
+  r.bandFlow = heroBox.top - (containerBox.top
+    + (parseFloat(getComputedStyle(container).borderTopWidth) || 0)
+    + (parseFloat(getComputedStyle(container).paddingTop) || 0));
   r.centerOffset = Math.abs(
     (bandBox.left + bandBox.right) / 2 - (containerBox.left + containerBox.right) / 2
   );
   r.wrapperFill = bandBox.left <= containerBox.left + 1 && bandBox.right >= containerBox.right - 1;
-  const hero = document.querySelector('.hero-header');
-  r.overlap = bandBox.bottom - hero.getBoundingClientRect().top;
+  r.overlap = bandBox.bottom - heroBox.top;
   r.noOverflow = document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1;
   r.contextRatio = main.getBoundingClientRect().width / context.getBoundingClientRect().width;
   r.reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const defs = band.querySelector('.scenic-side-defs');
+  r.defsW = defs.getBoundingClientRect().width;
+  r.defsH = defs.getBoundingClientRect().height;
+  const leftHit = document.elementFromPoint(bandBox.left + 10, bandBox.top + bandBox.height / 2);
+  const rightHit = document.elementFromPoint(bandBox.right - 10, bandBox.top + bandBox.height / 2);
+  const centerHit = document.elementFromPoint(
+    (bandBox.left + bandBox.right) / 2, (bandBox.top + bandBox.bottom) / 2);
+  r.leftHit = hitClass(leftHit);
+  r.rightHit = hitClass(rightHit);
+  r.centerInBand = !!(centerHit && centerHit.closest && centerHit.closest('.scenic-band'));
+  const scene = band.querySelector('.scenic-scene');
+  r.sceneDisplay = scene ? getComputedStyle(scene).display : null;
   const photo = document.querySelector('.scenic-photo');
   if (photo) {
     const source = photo.querySelector('img');
     r.role = photo.getAttribute('role');
     r.tabIndex = photo.tabIndex;
+    r.photoChildDisplay = getComputedStyle(source).display;
     r.filter = getComputedStyle(source).filter;
     r.tintBlend = getComputedStyle(photo.querySelector('.tint')).mixBlendMode;
     photo.click();
@@ -122,8 +161,6 @@ SCENIC_PROBE = r"""(() => {
     document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Escape', bubbles: true}));
     r.escapeClose = !document.querySelector('.lightbox-overlay');
     r.focusReturn = document.activeElement === photo;
-    photo.focus();
-    r.focusVisible = photo.matches(':focus-visible') && getComputedStyle(photo).outlineStyle !== 'none';
     photo.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', bubbles: true}));
     overlay = document.querySelector('.lightbox-overlay');
     r.enterOpen = !!overlay;
@@ -136,13 +173,14 @@ SCENIC_PROBE = r"""(() => {
   } else {
     r.fallbackAria = band.getAttribute('aria-hidden');
     r.fallbackFocusable = band.hasAttribute('tabindex') || band.hasAttribute('onclick');
-    r.fallbackBackground = getComputedStyle(band).backgroundImage;
+    r.fallbackBackground = bandStyle.backgroundImage;
     const star = band.querySelector('.scenic-star');
     r.starAnimation = getComputedStyle(star).animationName;
   }
   document.title = JSON.stringify(r);
   return r;
 })()"""
+
 
 
 def render_probe(html: str, width: int, height: int, reduced_motion: bool = False) -> dict | None:
@@ -211,11 +249,37 @@ def main() -> int:
         )
         is not None,
     )
+    check(
+        "Back: one card-content wrapper holds everything after the band",
+        re.search(
+            r"\{\{/Picture\}\}\s*<div class=\"card-content\">[\s\S]*?"
+            r'<div class="hero-header">',
+            back,
+        )
+        is not None
+        and "<!-- End card-content -->" in back,
+    )
 
     photo_branch = re.search(r"\{\{#Picture\}\}([\s\S]*?)\{\{/Picture\}\}", back)
     photo = photo_branch.group(1) if photo_branch else ""
     fallback_branch = re.search(r"\{\{\^Picture\}\}([\s\S]*?)\{\{/Picture\}\}", back)
     fallback = fallback_branch.group(1) if fallback_branch else ""
+
+    check(
+        "Back: both scenic branches define the wide-card side clip",
+        photo_branch is not None
+        and fallback_branch is not None
+        and photo_branch.group(1).count('id="scenic-side-clip"') == 1
+        and fallback_branch.group(1).count('id="scenic-side-clip"') == 1
+        and photo_branch.group(1).count('width="0.04"') == 2
+        and fallback_branch.group(1).count('width="0.04"') == 2
+        and photo_branch.group(1).count('x="0.96"') == 1
+        and fallback_branch.group(1).count('x="0.96"') == 1,
+    )
+    check(
+        "Back: illustrated scene carries its own wide-card class",
+        'class="scenic-scene"' in fallback,
+    )
 
     check(
         "Back: photo band reuses the existing lightbox trigger",
@@ -292,6 +356,7 @@ def main() -> int:
         ("--scenic-sat", "0.8"),
         ("--scenic-tint", "0.25"),
         ("--scenic-wash", "0.25"),
+        ("--scenic-rail-w", "4%"),
     ):
         check(f"CSS: {token} is declared once with {value}", len(re.findall(rf"{re.escape(token)}\s*:\s*{re.escape(value)}\s*;", css)) == 1)
 
@@ -313,7 +378,7 @@ def main() -> int:
     shell = rule_body(scenic, r"\.scenic-band")
     fallback_bg = rule_body(scenic, r"\.scenic-band:not\(:has\(\.scenic-photo\)\)")
     check(
-        "CSS: scenic sky applies only to the illustrated fallback",
+        "CSS: base scenic sky applies only to the illustrated fallback",
         shell is not None
         and "background:" not in shell
         and fallback_bg is not None
@@ -380,6 +445,60 @@ def main() -> int:
         is not None,
     )
 
+    wide = scenic.split("17b. WIDE-CARD SIDE RAILS", 1)[1] if "17b. WIDE-CARD SIDE RAILS" in scenic else ""
+    check(
+        "CSS: wide rails are gated by the 1000px card container",
+        "@container anki-card (min-width: 1000px)" in wide,
+    )
+    defs_rule = rule_body(scenic, r"\.scenic-band \.scenic-side-defs")
+    check(
+        "CSS: clip definition box is zero-sized",
+        defs_rule is not None
+        and "position: absolute" in defs_rule
+        and "width: 0" in defs_rule
+        and "height: 0" in defs_rule,
+    )
+    wide_band = rule_body(wide, r"\.back-card \.card-container > \.scenic-band")
+    check(
+        "CSS: wide band leaves flow, fills the card, and clips to rails",
+        wide_band is not None
+        and "position: absolute" in wide_band
+        and "inset: 0" in wide_band
+        and "height: auto" in wide_band
+        and "margin: 0" in wide_band
+        and "clip-path: url(#scenic-side-clip)" in wide_band
+        and "mask-image: linear-gradient" in wide_band
+        and "background: var(--scenic-sky)" in wide_band,
+    )
+    check(
+        "CSS: wide rails hide the top scene but keep the trigger",
+        ".scenic-band .scenic-scene" in wide
+        and ".scenic-band .scenic-photo > *" in wide
+        and "display: none" in wide,
+    )
+    fade_pseudos = re.search(
+        r"\.scenic-band::before,\s*\.scenic-band::after\s*\{([^}]*)\}", wide
+    )
+    check(
+        "CSS: wide inner fade matches the 4% rail token",
+        fade_pseudos is not None
+        and "width: var(--scenic-rail-w, 4%)" in fade_pseudos.group(1)
+        and wide.count("linear-gradient(to right, transparent 35%, var(--card-bg) 100%)") == 1
+        and wide.count("linear-gradient(to left, transparent 35%, var(--card-bg) 100%)") == 1,
+    )
+    content_rule = rule_body(wide, r"\.card-content")
+    check(
+        "CSS: wide content layer paints above the rails",
+        content_rule is not None
+        and "position: relative" in content_rule
+        and "z-index: 1" in content_rule,
+    )
+    check(
+        "CSS: wide focus ring is inset and brightens the rails",
+        "outline-offset: -4px" in wide
+        and "brightness(1.25)" in wide,
+    )
+
     # Dynamic browser contracts run against the real stylesheet and the real
     # openLightbox function extracted from the back template. They are skipped
     # gracefully when Chrome is unavailable, matching the existing test style.
@@ -387,54 +506,144 @@ def main() -> int:
         print("[SKIP] no headless Chrome found — Yūkei browser checks skipped")
     else:
         open_lightbox = extract_open_lightbox(back)
-        photo_desktop = render_probe(scenic_fixture(css, open_lightbox, "photo"), 1440, 900)
-        check("Browser: desktop photo probe returned", photo_desktop is not None)
-        if photo_desktop:
-            check(
-                "Browser: photo band stays centered, compact, and first",
-                photo_desktop.get("first") is True
-                and photo_desktop.get("centerOffset", 999) <= 1
-                and photo_desktop.get("wrapperFill") is True
-                and 56 <= photo_desktop.get("bandH", 0) <= 70
-                and 11 <= photo_desktop.get("overlap", 0) <= 13,
-            )
-            check("Browser: desktop photo mode has no horizontal overflow", photo_desktop.get("noOverflow") is True)
-            check(
-                "Browser: sentence context uses the full grid width",
-                photo_desktop.get("contextRatio", 0) >= 0.98,
-            )
-            check(
-                "Browser: photo trigger keeps button role and tab order",
-                photo_desktop.get("role") == "button"
-                and photo_desktop.get("tabIndex") == 0,
-            )
-            check(
-                "Browser: tuned saturate/blur and overlay pipeline are active",
-                "saturate(0.8)" in photo_desktop.get("filter", "")
-                and "blur(16px)" in photo_desktop.get("filter", "")
-                and photo_desktop.get("tintBlend") == "overlay",
-            )
-            check(
-                "Browser: click/Enter/Space open the original in the lightbox",
-                photo_desktop.get("clickOpen") is True
-                and photo_desktop.get("sameSource") is True
-                and photo_desktop.get("cloneUnblurred") is True
-                and photo_desktop.get("enterOpen") is True
-                and photo_desktop.get("spaceOpen") is True,
-            )
-            check(
-                "Browser: Escape and backdrop close the lightbox",
-                photo_desktop.get("escapeClose") is True
-                and photo_desktop.get("backdropClose") is True,
-            )
-            check(
-                "Browser: closing the lightbox returns focus to the trigger",
-                photo_desktop.get("focusReturn") is True,
-            )
 
+        # Phone: the established top band, unchanged in structure and behavior.
         photo_mobile = render_probe(scenic_fixture(css, open_lightbox, "photo"), 412, 892)
-        check("Browser: mobile photo mode has no horizontal overflow", bool(photo_mobile and photo_mobile.get("noOverflow")))
+        check("Browser: phone photo probe returned", photo_mobile is not None)
+        if photo_mobile:
+            check(
+                "Browser: phone photo band stays centered, compact, and first",
+                photo_mobile.get("first") is True
+                and photo_mobile.get("contentSecond") is True
+                and photo_mobile.get("centerOffset", 999) <= 1
+                and photo_mobile.get("wrapperFill") is True
+                and 56 <= photo_mobile.get("bandH", 0) <= 70
+                and 11 <= photo_mobile.get("overlap", 0) <= 13,
+            )
+            check(
+                "Browser: phone keeps the photo-derived top band and pipeline",
+                photo_mobile.get("bandPosition") == "relative"
+                and photo_mobile.get("bandClip") == "none"
+                and photo_mobile.get("photoChildDisplay") == "block"
+                and photo_mobile.get("defsW") == 0
+                and photo_mobile.get("defsH") == 0
+                and "saturate(0.8)" in photo_mobile.get("filter", "")
+                and "blur(16px)" in photo_mobile.get("filter", "")
+                and photo_mobile.get("tintBlend") == "overlay",
+            )
+            check("Browser: phone photo mode has no horizontal overflow", photo_mobile.get("noOverflow") is True)
+            check(
+                "Browser: phone sentence context uses the full grid width",
+                photo_mobile.get("contextRatio", 0) >= 0.98,
+            )
+            check(
+                "Browser: phone photo trigger keeps button role and tab order",
+                photo_mobile.get("role") == "button"
+                and photo_mobile.get("tabIndex") == 0,
+            )
+            check(
+                "Browser: phone click/Enter/Space open the original in the lightbox",
+                photo_mobile.get("clickOpen") is True
+                and photo_mobile.get("sameSource") is True
+                and photo_mobile.get("cloneUnblurred") is True
+                and photo_mobile.get("enterOpen") is True
+                and photo_mobile.get("spaceOpen") is True,
+            )
+            check(
+                "Browser: phone Escape and backdrop close the lightbox",
+                photo_mobile.get("escapeClose") is True
+                and photo_mobile.get("backdropClose") is True,
+            )
+            check(
+                "Browser: phone closing the lightbox returns focus to the trigger",
+                photo_mobile.get("focusReturn") is True,
+            )
 
+        # A narrow desktop pane (below the 1000px container gate) keeps the
+        # established top band, not a half-applied rail layout.
+        photo_narrow = render_probe(scenic_fixture(css, open_lightbox, "photo"), 900, 900)
+        check("Browser: narrow-pane photo probe returned", photo_narrow is not None)
+        if photo_narrow:
+            check(
+                "Browser: narrow desktop pane keeps the top band",
+                photo_narrow.get("bandPosition") == "relative"
+                and photo_narrow.get("bandClip") == "none"
+                and 56 <= photo_narrow.get("bandH", 0) <= 70
+                and 11 <= photo_narrow.get("overlap", 0) <= 13
+                and photo_narrow.get("photoChildDisplay") == "block",
+            )
+
+        # Wide pane: the band becomes two clipped, cool-sky side rails.
+        photo_wide = render_probe(scenic_fixture(css, open_lightbox, "photo"), 1440, 900)
+        check("Browser: wide-pane photo probe returned", photo_wide is not None)
+        if photo_wide:
+            check(
+                "Browser: wide band leaves flow and fills the card",
+                photo_wide.get("first") is True
+                and photo_wide.get("bandPosition") == "absolute"
+                and photo_wide.get("wrapperFill") is True
+                and abs(photo_wide.get("bandH", 0) - photo_wide.get("containerH", 0)) <= 3
+                and -1 <= photo_wide.get("bandFlow", 99) <= 1,
+            )
+            check(
+                "Browser: wide band is clipped to two cool-sky rails",
+                "scenic-side-clip" in photo_wide.get("bandClip", "")
+                and photo_wide.get("bandMask") not in (None, "none")
+                and "gradient" in photo_wide.get("bandBackground", "")
+                and photo_wide.get("railPseudoW", 0) >= 45,
+            )
+            check(
+                "Browser: wide rails hide the scene but keep the trigger",
+                photo_wide.get("photoChildDisplay") == "none"
+                and photo_wide.get("role") == "button"
+                and photo_wide.get("tabIndex") == 0,
+            )
+            check(
+                "Browser: wide rail hit-testing keeps one lightbox target",
+                "scenic-photo" in photo_wide.get("leftHit", "")
+                and "scenic-photo" in photo_wide.get("rightHit", "")
+                and photo_wide.get("centerInBand") is False,
+            )
+            check(
+                "Browser: wide content sits above the rails",
+                photo_wide.get("contentSecond") is True
+                and photo_wide.get("contextRatio", 0) >= 0.98
+                and photo_wide.get("noOverflow") is True,
+            )
+            check(
+                "Browser: wide click/Enter/Space open the original in the lightbox",
+                photo_wide.get("clickOpen") is True
+                and photo_wide.get("sameSource") is True
+                and photo_wide.get("cloneUnblurred") is True
+                and photo_wide.get("enterOpen") is True
+                and photo_wide.get("spaceOpen") is True,
+            )
+            check(
+                "Browser: wide Escape/backdrop close and focus return",
+                photo_wide.get("escapeClose") is True
+                and photo_wide.get("backdropClose") is True
+                and photo_wide.get("focusReturn") is True,
+            )
+
+        # Wide fallback: decorative rails, no trigger, scene removed.
+        fallback_wide = render_probe(scenic_fixture(css, open_lightbox, "fallback"), 1440, 900)
+        check("Browser: wide fallback probe returned", fallback_wide is not None)
+        if fallback_wide:
+            check(
+                "Browser: wide fallback renders decorative, non-focusable rails",
+                fallback_wide.get("first") is True
+                and fallback_wide.get("contentSecond") is True
+                and fallback_wide.get("bandPosition") == "absolute"
+                and "scenic-side-clip" in fallback_wide.get("bandClip", "")
+                and fallback_wide.get("railPseudoW", 0) >= 45
+                and fallback_wide.get("fallbackAria") == "true"
+                and fallback_wide.get("fallbackFocusable") is False
+                and "gradient" in fallback_wide.get("fallbackBackground", "")
+                and fallback_wide.get("sceneDisplay") == "none"
+                and "scenic-photo" not in fallback_wide.get("leftHit", ""),
+            )
+
+        # Phone fallback + reduced motion stays the ADR 005 band.
         fallback_reduced = render_probe(
             scenic_fixture(css, open_lightbox, "fallback"),
             412,
@@ -444,10 +653,11 @@ def main() -> int:
         check("Browser: reduced-motion fallback probe returned", fallback_reduced is not None)
         if fallback_reduced:
             check(
-                "Browser: fallback remains decorative and non-focusable",
+                "Browser: phone fallback remains decorative and non-focusable",
                 fallback_reduced.get("fallbackAria") == "true"
                 and fallback_reduced.get("fallbackFocusable") is False
-                and "gradient" in fallback_reduced.get("fallbackBackground", ""),
+                and "gradient" in fallback_reduced.get("fallbackBackground", "")
+                and fallback_reduced.get("sceneDisplay") == "block",
             )
             check(
                 "Browser: reduced motion disables fallback animation",
