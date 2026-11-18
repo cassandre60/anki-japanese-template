@@ -2641,3 +2641,17 @@ dothings now
 ---
 
 make the strip a bit lengthier; there is still some wasted space on the top
+
+---
+
+text should not render on top of the image bands because it not visible
+this was introducetd by the last commit
+fix it
+here  is a visual of the pb:
+[Image 1] Attached file: /home/mohamed/Pictures/Screenshots/Screenshot_20261118_191354.png
+
+---
+
+before closing session remove the purple bs that you created on top of the image,
+it  should just look like before but this time in a different place
+your bs effect you added make the image confusing, i need  the image as it is(modulo the blurriness) to help me get in mood of the context. Destroyingits colors by adding your purple effect will just confuse me with no upside

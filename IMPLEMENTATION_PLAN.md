@@ -209,9 +209,10 @@ T2/T3 are parallelizable; T4 needs T2; T5 needs T3.
   rail hit-testing, zero flow, full-height clip, photo/fallback visibility,
   warm tint, reclaimed top padding, cool accent, and conversation behavior.
   Status: COMPLETE — wide desktop cards use full-height 6% side rails
-  with .rail-photo-left/right 25%/75% crops; top space tightened; dark back-card
-  controls use cool blue/purple palette; narrow/mobile top band unchanged;
-  69/69 Yūkei checks green; verified live in Anki.
+  with .rail-photo-left/right 25%/75% crops; authentic photo colors preserved
+  without tint/sky bleed; content padded clear of rails; top space tightened;
+  dark back-card controls use cool blue/purple palette; narrow/mobile top band
+  unchanged; 71/71 Yūkei checks green; verified live in Anki.
 
 ## Roadmap (evolution loop input, not committed scope)
 

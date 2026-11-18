@@ -62,14 +62,16 @@ Two further constraints shaped the implementation:
 - **Picture treatment:** on wide cards the photo is mounted into two
   independent rail elements (`.rail-photo-left` and `.rail-photo-right`),
   sampling horizontal positions 25% and 75% with `object-fit: cover`.
-  Centered subjects (character illustrations, figures with transparent or dark
-  margins) blur visibly into both side rails instead of being clipped out into
-  the card center. On narrow panes and mobile, `.rail-photo-right` is hidden
-  and `.rail-photo-left` spans the full top band unchanged. Both rails sit
-  inside the single `.scenic-photo` lightbox trigger, preserving one focus stop
-  and one dialog. Only `.scenic-photo .fade` is hidden on wide cards; the
-  photo tint stays warm through `--scenic-tint-color` (`#e07a5f` dark,
-  `#b84a39` light).
+  Centered subjects blur visibly into both side rails. All color-altering
+  overlays (`.tint`, `.wash`, `.grain`, `.fade`) and the sky gradient
+  background are disabled on the photo rails, and `filter: blur(16px)` is
+  applied directly to the image: the photo's genuine context colors remain
+  100% intact without any purple tint or sky bleed (modulo blurriness).
+  Fallback cards without a photo render the illustrated scene with
+  `background: var(--scenic-sky)` in the rails. On narrow panes and mobile,
+  `.rail-photo-right` is hidden and the established top band is unchanged.
+  Both rails sit inside the single `.scenic-photo` lightbox trigger,
+  preserving one focus stop and one dialog.
 - **Controls:** the dark back card adopts the cool blue/purple accent
   (`--accent-color: #a394f0`, with matching light/soft/glow tokens) and
   resting audio labels at `#b9adf7`, so the card's buttons match the rails.
@@ -90,15 +92,15 @@ Two further constraints shaped the implementation:
 ## Consequences
 
 - Wide desktop cards reclaim the band's flow cost **and** the container's top
-  padding: content starts at the card's inner top edge, with only the hero's
-  top space: `.word-display` top padding is tightened to ~26px on wide cards
-  (preserving safe clearance for ruby text), and container top margin/padding
-  are zeroed, eliminating dead space above the expression. The rails run full
-  height at 6% width (~82px) inside the card edges.
+  padding: content starts with safe furigana headroom above the word. Content
+  is padded horizontally past the side rails, preventing any text (including
+  detailed dictionary headings and secondary metadata) from rendering on top
+  of the image bands. The rails run full height at 6% width (~82px) inside the
+  card edges.
 - The blurred picture (or the illustrated fallback) remains visible on wide
-  cards, now as two quiet full-height rails. The card keeps its visual
-  identity and its lightbox affordance instead of trading the photo for a flat
-  gradient.
+  cards, now as two quiet full-height rails. The photo preserves its authentic
+  scene colors (modulo blurriness) with no purple cast or background bleed,
+  keeping the card's context mood intact.
 - The dark back card's controls now share the cool blue/purple accent of the
   rails. The light washi theme and the front card keep their warm accent, and
   the warm photo tint is unchanged, so the picture still reads as before.

@@ -4,7 +4,7 @@
  * (Tokyo Night Dark / Aki Paper Light)
  *
  * Source & documentation: https://github.com/cassandre60/anki-japanese-template
- * Version: v1.8.81 — auto-bumped by finish.sh; matches the GitHub release tag
+ * Version: v1.8.82 — auto-bumped by finish.sh; matches the GitHub release tag
  *
  * Front = pure retrieval surface (sentence / word / audio only).
  * Back = strong hierarchy: target → reading → meaning → context →
@@ -2058,10 +2058,14 @@ ruby:focus-within rt {
 
 @container anki-card (min-width: 1000px) {
   /* Reclaim top vertical space: margin-top zeroed, padding-top zeroed,
-     and hero padding tightened while keeping safe furigana clearance. */
+     and hero padding tightened while keeping safe furigana clearance.
+     Horizontal padding keeps content clear of the side rails so text
+     never renders on top of the image bands. */
   .back-card .card-container {
     margin-top: 0;
     padding-top: 0;
+    padding-left: calc(var(--scenic-rail-w, 6%) + var(--container-pad-x));
+    padding-right: calc(var(--scenic-rail-w, 6%) + var(--container-pad-x));
   }
 
   .back-card .word-display {
@@ -2080,7 +2084,6 @@ ruby:focus-within rt {
     margin: 0;
     border-radius: 0;
     z-index: 0;
-    background: var(--scenic-sky);
     /* Mirrors the two rects in the template's #scenic-side-clip
        (0 → 0.06 and 0.94 → 1), i.e. --scenic-rail-w per side. */
     clip-path: url(#scenic-side-clip);
@@ -2088,10 +2091,17 @@ ruby:focus-within rt {
        own rounded clipping handles the corners. */
   }
 
-  /* The original photo pipeline now paints inside the clipped rails. The
-     full-height photo fade was designed for a 70px strip and would erase
-     most of the picture at this height, so the rails keep tint/grain/wash
-     and drop only the bottom fade. */
+  /* Illustrated fallback (no Picture) uses the sky gradient in the rails */
+  .back-card .card-container > .scenic-band:not(:has(.scenic-photo)) {
+    background: var(--scenic-sky);
+  }
+
+  /* Wide rails: remove all overlays (tint, wash, grain, fade) on top of the
+     photo so the picture's authentic colors are preserved without any
+     color-shifting or purple cast (modulo blurriness). */
+  .scenic-band .scenic-photo .tint,
+  .scenic-band .scenic-photo .wash,
+  .scenic-band .scenic-photo .grain,
   .scenic-band .scenic-photo .fade {
     display: none;
   }
@@ -2122,6 +2132,7 @@ ruby:focus-within rt {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    filter: blur(var(--scenic-blur));
   }
 
   .scenic-photo .rail-photo-left img {

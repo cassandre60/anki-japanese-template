@@ -134,6 +134,7 @@ SCENIC_PROBE = r"""(() => {
     (bandBox.left + bandBox.right) / 2 - (containerBox.left + containerBox.right) / 2
   );
   r.wrapperFill = bandBox.left <= containerBox.left + 1 && bandBox.right >= containerBox.right - 1;
+  r.contentClearance = content.getBoundingClientRect().left - (bandBox.left + r.railPseudoW);
   r.overlap = bandBox.bottom - heroBox.top;
   r.noOverflow = document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1;
   r.contextRatio = main.getBoundingClientRect().width / context.getBoundingClientRect().width;
@@ -159,8 +160,10 @@ SCENIC_PROBE = r"""(() => {
     r.tabIndex = photo.tabIndex;
     r.photoChildDisplay = getComputedStyle(source).display;
     r.filter = getComputedStyle(source).filter;
-    r.tintBlend = getComputedStyle(photo.querySelector('.tint')).mixBlendMode;
-    r.tintColor = getComputedStyle(photo.querySelector('.tint')).backgroundColor;
+    const tintEl = photo.querySelector('.tint');
+    r.tintDisplay = tintEl ? getComputedStyle(tintEl).display : null;
+    r.tintBlend = tintEl ? getComputedStyle(tintEl).mixBlendMode : null;
+    r.tintColor = tintEl ? getComputedStyle(tintEl).backgroundColor : null;
     photo.click();
     let overlay = document.querySelector('.lightbox-overlay');
     const clone = overlay && overlay.querySelector('.expanded-img');
@@ -476,13 +479,18 @@ def main() -> int:
         and "height: auto" in wide_band
         and "margin: 0" in wide_band
         and "clip-path: url(#scenic-side-clip)" in wide_band
-        and "mask-image" not in wide_band
-        and "background: var(--scenic-sky)" in wide_band,
+        and "mask-image" not in wide_band,
+    )
+    fallback_wide_rule = rule_body(wide, r"\.back-card \.card-container > \.scenic-band:not\(:has\(\.scenic-photo\)\)")
+    check(
+        "CSS: wide fallback keeps the sky gradient in the rails",
+        fallback_wide_rule is not None and "background: var(--scenic-sky)" in fallback_wide_rule,
     )
     check(
-        "CSS: wide rails keep the photo pipeline and fallback scene visible",
-        ".scenic-band .scenic-scene" not in wide
-        and ".scenic-band .scenic-photo > *" not in wide
+        "CSS: wide rails disable overlays (tint, wash, grain, fade) on the photo",
+        ".scenic-band .scenic-photo .tint" in wide
+        and ".scenic-band .scenic-photo .wash" in wide
+        and ".scenic-band .scenic-photo .grain" in wide
         and ".scenic-band .scenic-photo .fade" in wide
         and "display: none" in wide,
     )
@@ -614,22 +622,19 @@ def main() -> int:
                 "Browser: wide band is clipped to two full-height rails",
                 "scenic-side-clip" in photo_wide.get("bandClip", "")
                 and photo_wide.get("bandMask") == "none"
-                and "gradient" in photo_wide.get("bandBackground", "")
                 and photo_wide.get("railPseudoW", 0) >= 45,
             )
             check(
                 "Browser: wide rails keep the blurred photo and the trigger",
                 photo_wide.get("photoChildDisplay") == "block"
-                and "saturate(0.8)" in photo_wide.get("filter", "")
                 and "blur(16px)" in photo_wide.get("filter", "")
-                and photo_wide.get("tintBlend") == "overlay"
+                and photo_wide.get("tintDisplay") == "none"
                 and photo_wide.get("role") == "button"
                 and photo_wide.get("tabIndex") == 0,
             )
             check(
-                "Browser: wide back-card controls use the cool accent, photo stays warm",
-                photo_wide.get("backAccent") == "#a394f0"
-                and photo_wide.get("tintColor") == "rgb(224, 122, 95)",
+                "Browser: wide back-card controls use the cool accent",
+                photo_wide.get("backAccent") == "#a394f0",
             )
             check(
                 "Browser: wide rail hit-testing keeps one lightbox target",
@@ -642,6 +647,10 @@ def main() -> int:
                 photo_wide.get("contentSecond") is True
                 and photo_wide.get("contextRatio", 0) >= 0.98
                 and photo_wide.get("noOverflow") is True,
+            )
+            check(
+                "Browser: wide content stays clear of side rails",
+                photo_wide.get("contentClearance", 0) >= 16,
             )
             check(
                 "Browser: wide click/Enter/Space open the original in the lightbox",
