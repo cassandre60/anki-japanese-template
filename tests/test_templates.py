@@ -133,6 +133,10 @@ def main():
           "clozePre && clozeMid && clozeSuf" in front)
     check("Front: rebuilt term uses <b> (inherits sentence-display styling)",
           "createElement('b')" in front)
+    check("Front: contained trio is highlighted in place, never replaced",
+          "boldTermInPlace" in front
+          and "range.extractContents()" in front
+          and "sentText.includes(trioText)" in front)
 
     # --- 4. Lightbox: backdrop-only close ---
     check("lightbox closes only on backdrop click (e.target === overlay)",

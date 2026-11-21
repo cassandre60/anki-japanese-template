@@ -83,8 +83,9 @@ off-screen context to be solvable is a bad mine and should be re-mined.
   sentence; legacy Frequency-only → sentence; pure listening cards (no
   Definition, no Extended-definition, no Frequency, usable audio present)
   → large circular audio button; `#listening` + no usable audio falls
-  back to sentence; cloze trio rebuild when Sentence lacks `<b>` and the
-  trio is not already contained in the rendered sentence; mature
+  back to sentence; cloze trio rebuild when Sentence lacks `<b>`, with an
+  already-contained trio highlighted in place instead of replacing the
+  fuller sentence; mature
   interval-gated word-only front. Normal cards NEVER render or play audio
   on the front. The sentence front is the universal fallback for every
   failure path.

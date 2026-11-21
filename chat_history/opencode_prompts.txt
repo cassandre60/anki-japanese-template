@@ -2655,3 +2655,10 @@ here  is a visual of the pb:
 before closing session remove the purple bs that you created on top of the image,
 it  should just look like before but this time in a different place
 your bs effect you added make the image confusing, i need  the image as it is(modulo the blurriness) to help me get in mood of the context. Destroyingits colors by adding your purple effect will just confuse me with no upside
+
+---
+
+why  isnt this card rendered  correctly?
+性に合わない
+nothing is bold in  front card
+the template should handle  cases like this

@@ -22,7 +22,7 @@ run `./verify`; CI re-runs `./verify` after every push.
 | Compactor keeps 1st dictionary, ≤2 senses, no appendices; extended definition untouched; rules scoped to `.primary-definition` | `tests/test_compactor.py` — extracts real `display:none` rules from CSS §6b, applies to `tests/fixtures/*.html` (bs4 + soupsieve) |
 | Front furigana ban; raw Sentence/Expression present | `tests/test_templates.py` §1 |
 | Audio aria-labels; native-only controller; sibling replay source; debounce; restart-only | `tests/test_templates.py` §§2–3b |
-| Cloze probe shape, trio gate, `<b>` rebuild, bold guard | `tests/test_templates.py` §2c |
+| Cloze probe shape, trio gate, `<b>` rebuild, in-place body highlight, bold guard | `tests/test_templates.py` §2c |
 | Yūkei scenic band: one `Picture` reference; photo/fallback conditionals; accessible photo trigger; no retired inline thumbnail; corrected `saturate()` + `overlay` pipeline; wide-pane side rails (zero flow, full-height clip, visible photo/fallback, warm tint, reclaimed top padding, cool dark-theme accent, rail hit-testing, content layer); narrow/phone top band unchanged; fallback reduced motion | `tests/test_yukei.py` — back-template/CSS structural contracts plus headless Chrome interaction/layout probes at phone, narrow-pane, and wide-pane widths; runs during the minimal-front isolation branch |
 | Lightbox backdrop-only close, dialog semantics, alt | `tests/test_templates.py` §4 |
 | Balanced Anki conditionals | `tests/test_templates.py` §5 |

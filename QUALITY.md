@@ -63,10 +63,10 @@ mechanically verified*. Code implements; tests enforce.
   deterministic and safe: it must never depend on a single async path or
   timer that can be throttled, and it must never leave a blank/hung card.
 - Cloze rebuild fires only when Sentence lacks `<b>`/`<strong>` **and** the
-  full prefix/body/suffix trio is non-empty **and** the trio is not already
-  contained in the rendered sentence — a fuller sentence is never replaced
-  by a cloze fragment of itself (Yomitan cloze fields hold only a context
-  window); rebuild uses `<b>`.
+  full prefix/body/suffix trio is non-empty. A fuller sentence that already
+  contains the trio is never replaced by a cloze fragment of itself
+  (Yomitan cloze fields hold only a context window); its cloze-body target
+  is highlighted in place with `<b>` instead. Rebuild uses `<b>`.
 - The template contains **no executable AnkiDroid JS API code** and makes no
   `/jsapi/` request; mobile Mature Word Mode is intentionally disabled and
   degrades to the sentence front.

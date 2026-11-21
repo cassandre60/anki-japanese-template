@@ -45,7 +45,8 @@ Sentence Audio? ──yes──→ listening-view (audio-only card)
 sentence-display fallback
         │
 cloze fixup: Sentence has no <b> AND cloze trio complete?
-        │ yes → prefix + <b>body</b> + suffix
+        │ trio already contained → wrap body in <b> in place
+        │ otherwise → prefix + <b>body</b> + suffix
         │
 Mature check (desktop only; not listening, Expression non-empty,
               interval ≥ LONG_INTERVAL_DAYS=365)?
