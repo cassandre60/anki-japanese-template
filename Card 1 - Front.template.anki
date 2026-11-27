@@ -240,6 +240,14 @@
 
 <script>
   (async function() {
+    /* --- 0. DOM RE-USE CLEANUP --- */
+    /* Ensure no stale tags bar survived from previous card. */
+    try {
+      document.querySelectorAll('.tags-bar').forEach(function(b) {
+        if (b.parentNode) b.parentNode.removeChild(b);
+      });
+    } catch (_) {}
+
     /* --- 1. HOISTED UTILITIES & FUNCTIONS --- */
 
     /* --- CIRCULAR AUDIO CONTROLLER (native-only) ---

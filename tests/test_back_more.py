@@ -145,7 +145,7 @@ def build_geometry_html(funcs, css):
     return f"""<!doctype html><html><head><meta charset="utf-8">
 <style>html, body {{ margin: 0; padding: 20px; }}</style>
 <style>{css}</style></head><body class="card card1 nightMode">
-<div class="card-wrapper back-card"><div class="card-container">
+<div id="qa"><div class="card-wrapper back-card"><div class="card-container">
 <div class="hero-header"><div class="hero-word-wrap"><div class="word-display">言葉</div></div></div>
 <div class="definition-box primary-definition">definition text</div>
 <div class="more-section" hidden>
@@ -155,7 +155,11 @@ def build_geometry_html(funcs, css):
 <span class="more-text">詳細</span> <span class="more-caret">▾</span></button>
 <div class="shortcut-hints"><button type="button" class="shortcut-item"
 data-shortcut="c"><kbd>C</kbd> 展開</button></div>
+</div>
+<div class="tags-bar" hidden>
 <div class="tags-source" hidden>tag-alpha tag-beta tag-gamma</div>
+<div class="tags-pills"></div>
+</div>
 </div></div>
 <script>
 var report = {{}};
@@ -180,8 +184,9 @@ function state() {{
   var bar = document.querySelector('.tags-bar');
   return {{
     hidden: sec.hidden,
-    tagsBarVisible: !!bar,
-    tagsBarOnBody: !!(bar && bar.parentNode === document.body),
+    tagsBarVisible: !!(bar && !bar.hidden),
+    tagsBarInWrapper: !!(bar && bar.closest('.card-wrapper.back-card')),
+    notOnBody: !document.body.querySelector(':scope > .tags-bar'),
     tagsBarCount: document.querySelectorAll('.tags-bar').length,
     panel: !!document.querySelector('.tags-panel')
   }};
@@ -206,6 +211,9 @@ window.toggleMore(btn);
 report.afterReopen = Object.assign(state(), {{
   toggleHit: hit(btn), hintsHit: hit(hints)
 }});
+// Next card transition test
+document.getElementById('qa').innerHTML = '<div class="card-wrapper"><div class="card-container"><div class="sentence-display">Next Front</div></div></div>';
+report.nextCardHasTags = !!document.querySelector('.tags-bar');
 }} catch(e) {{ report.err = String(e && e.stack || e); }}
 document.title = 'X' + JSON.stringify(report) + 'X';
 </scr""" + "ipt></body></html>"
@@ -316,9 +324,10 @@ def main():
               before.get("tagsBarVisible") is False
               and before.get("panel") is False,
               str(r))
-        check(f"tags bar [{size}]: reveal creates fixed bar on body (no old panel)",
+        check(f"tags bar [{size}]: reveal shows fixed bar scoped to card (never on body)",
               opened.get("tagsBarVisible") is True
-              and opened.get("tagsBarOnBody") is True
+              and opened.get("tagsBarInWrapper") is True
+              and opened.get("notOnBody") is True
               and opened.get("barFixed") is True
               and opened.get("panel") is False,
               str(r))
@@ -334,21 +343,23 @@ def main():
         check(f"tags bar [{size}]: no horizontal overflow",
               opened.get("noHOverflow") is True,
               str(r))
-        check(f"tags bar [{size}]: closing removes bar, no stale panel",
+        check(f"tags bar [{size}]: closing hides bar, no stale panel",
               closed.get("hidden") is True
               and closed.get("tagsBarVisible") is False
-              and closed.get("panel") is False
-              and closed.get("tagsBarCount") == 0,
+              and closed.get("panel") is False,
               str(r))
-        check(f"tags bar [{size}]: re-init leaves no bar behind",
+        check(f"tags bar [{size}]: re-init leaves bar hidden",
               reinit.get("hidden") is True
               and reinit.get("panel") is False
-              and reinit.get("tagsBarCount") == 0,
+              and reinit.get("tagsBarVisible") is False,
               str(r))
         check(f"tags bar [{size}]: reopening is clean (one bar)",
               reopened.get("tagsBarVisible") is True
               and reopened.get("panel") is False
               and reopened.get("tagsBarCount") == 1,
+              str(r))
+        check(f"tags bar [{size}]: next card has no tags bar",
+              r.get("nextCardHasTags") is False,
               str(r))
 
     print()

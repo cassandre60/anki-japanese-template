@@ -308,10 +308,9 @@
 }
 
 /* Tags bar: a fixed strip at the viewport bottom, shown only when More
-   is open. Created by JS on document.body (outside .card-wrapper) so
-   position:fixed works despite container-type:inline-size. The bar never
-   covers the C control (it sits below the card), never clips the page,
-   and is removed when More closes or the card flips. */
+   is open. Pinned to the viewport bottom; lives inside .card-wrapper
+   (outside .card-container) so position:fixed works and it is cleaned
+   up automatically when Anki replaces the card. */
 .tags-bar {
   position: fixed;
   left: 0;
@@ -323,12 +322,25 @@
   justify-content: center;
   flex-wrap: wrap;
   gap: 6px;
-  padding: 6px 12px;
+  padding: 6px 12px calc(6px + env(safe-area-inset-bottom, 0px));
   background: var(--card-bg);
   border-top: 1px solid var(--card-border);
   font-family: var(--font-interface);
   font-size: 0.68rem;
   line-height: 1;
+  box-sizing: border-box;
+}
+
+.tags-bar[hidden] {
+  display: none !important;
+}
+
+.tags-pills {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 6px;
 }
 
 .tags-bar-pill {
@@ -346,6 +358,13 @@
 /* Hidden data source for tags text — never rendered. */
 .tags-source {
   display: none !important;
+}
+
+/* Extra bottom clearance on card-container when tags bar is revealed,
+   so scrolling to the end never hides content behind the bar */
+.card-wrapper.has-tags-bar .card-container,
+.card-wrapper:has(.tags-bar:not([hidden])) .card-container {
+  padding-bottom: calc(var(--container-pad-y) + 40px);
 }
 
 

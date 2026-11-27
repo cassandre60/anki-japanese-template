@@ -12,8 +12,7 @@
 
       Removed vs the old layout: default sticky tags bar (tags are
       behavioral metadata, shown only on explicit More/C reveal as a
-      fixed bar at the viewport bottom — JS creates it on document.body
-      so it works despite container-type:inline-size), frequency/pitch
+      fixed bar at the viewport bottom scoped inside .card-wrapper), frequency/pitch
       badges (visual noise without retrieval value), the two-column side
       dashboard.
 
@@ -277,18 +276,20 @@
       <button type="button" class="shortcut-item" data-shortcut="c" title="展開 (C)"><kbd>C</kbd> 展開</button>
     </div>
 
-    <!-- Tags footer: placed AFTER the shortcut bar so it renders at the
-         very bottom of the visible card when revealed. Hidden by default;
-         toggleMore JS clones its text into a fixed bar on document.body
-         (outside card-wrapper, so position:fixed works despite
-         container-type:inline-size). No scroll needed. -->
-    {{#Tags}}
-      <div class="tags-source" hidden>{{Tags}}</div>
-    {{/Tags}}
-
     </div> <!-- End card-content -->
 
   </div> <!-- End card-container -->
+
+  <!-- Tags bar: fixed strip at the viewport bottom. Placed inside
+       .card-wrapper (outside .card-container) so position:fixed works
+       and it is scoped to this card — automatically cleaned up when
+       Anki transitions to the next card. -->
+  {{#Tags}}
+    <div class="tags-bar" hidden>
+      <div class="tags-source" hidden>{{Tags}}</div>
+      <div class="tags-pills"></div>
+    </div>
+  {{/Tags}}
 </div>
 
 <!-- Lightbox, Audio, Frequency & Secondary-Section Scripts -->
@@ -329,26 +330,35 @@
     };
 
     window.showTagsBar = function(wrapper) {
-      window.hideTagsBar();
-      var src = (wrapper || document).querySelector('.tags-source');
-      if (!src) return;
-      var raw = (src.textContent || '').trim();
-      if (!raw) return;
-      var bar = document.createElement('div');
-      bar.className = 'tags-bar';
-      raw.split(/\s+/).forEach(function(tag) {
-        var pill = document.createElement('span');
-        pill.className = 'tags-bar-pill';
-        pill.textContent = tag;
-        bar.appendChild(pill);
-      });
-      document.body.appendChild(bar);
+      var scope = wrapper || (document.querySelector && document.querySelector('.card-wrapper.back-card')) || document;
+      var bar = scope.querySelector('.tags-bar');
+      if (!bar) return;
+      var pills = bar.querySelector('.tags-pills');
+      var src = bar.querySelector('.tags-source');
+      if (pills && src && !pills.hasChildNodes()) {
+        var raw = (src.textContent || '').trim();
+        if (raw) {
+          raw.split(/\s+/).forEach(function(tag) {
+            if (!tag) return;
+            var pill = document.createElement('span');
+            pill.className = 'tags-bar-pill';
+            pill.textContent = tag;
+            pills.appendChild(pill);
+          });
+        }
+      }
+      bar.hidden = false;
+      if (scope.classList) scope.classList.add('has-tags-bar');
     };
 
-    window.hideTagsBar = function() {
-      var bars = document.querySelectorAll('.tags-bar');
-      for (var i = 0; i < bars.length; i++) {
-        if (bars[i].parentNode) bars[i].parentNode.removeChild(bars[i]);
+    window.hideTagsBar = function(wrapper) {
+      var scope = wrapper || (document.querySelector && document.querySelector('.card-wrapper.back-card')) || document;
+      var bar = scope.querySelector('.tags-bar');
+      if (bar) bar.hidden = true;
+      if (scope.classList) scope.classList.remove('has-tags-bar');
+      var rogue = document.body.querySelectorAll(':scope > .tags-bar');
+      for (var i = 0; i < rogue.length; i++) {
+        if (rogue[i].parentNode) rogue[i].parentNode.removeChild(rogue[i]);
       }
     };
 
