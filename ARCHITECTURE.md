@@ -115,13 +115,17 @@ card-container
       │    grouped readings per base character with start-aligned `rt`; its
       │    type scale is bumped ~+11% (desktop cap 2.05rem, mobile 3.9vmin)
       ├── .more-section (hidden) + .more-toggle "More ▾"
-      │    └── translation (click/T) · context · kanji notes · notes · source
-      │        (.source-footer) · full extended definition (.extended-full —
-      │        compactor never touches it)
+      │    ├── translation (click/T) · context · kanji notes · notes · source
+      │    │   (.source-footer) · full extended definition (.extended-full —
+      │    │   compactor never touches it)
+      │    └── .tags-block `{{Tags}}` (hidden by default; explicit More/C
+      │        reveal keeps it in flow as the section footer and scrolls it
+      │        and the C bar into view)
 ```
 
 JS controllers (all idempotent under WebView DOM re-use): More toggle (one-way reveal;
-section+button self-remove when secondary content is absent),
+section+button self-remove when secondary content is absent; `ensureTagsVisible`
+scrolls the revealed tag footer and C bar into view, no overlay/moved DOM),
 native-only circular audio (`playCircularAudio` → sibling replay link
 click, re-tap debounce, playback indicator pulse), definition truncator (blank boxes
 removed, then measure → `.is-truncated` → one-way `.is-expanded`),

@@ -2662,3 +2662,9 @@ why  isnt this card rendered  correctly?
 性に合わない
 nothing is bold in  front card
 the template should handle  cases like this
+
+---
+
+Solve GitHub issue #4: card back pinned tags panel overlays content and clips the viewport bottom.
+
+Follow-up after the fix: "i need to test to see if itgood in anki, commit and syncfirst"

@@ -110,10 +110,13 @@ off-screen context to be solvable is a bad mine and should be re-mined.
   ordinary sentence front is shown: the template makes no AnkiDroid JS API
   interval request, because those calls can surface natively as false
   "Card Content Error: Failed to load" media warnings in the reviewer.
-- Tags are behavioral metadata, never decoration: hidden probes only;
-  `#listening` forces listening behavior (requires usable audio, else
-  falls back to sentence); extensible for future behavior-related tags
-  without card redesign.
+- Tags are behavioral metadata, never decoration: front uses hidden
+  probes only; on the back, `{{Tags}}` is hidden by default inside More
+  and, when explicitly revealed by `More ▾` / `C`, appears as an in-flow
+  footer at the end of the section (no fixed overlay); the reveal scrolls
+  the footer and the C bar into view; `#listening` forces listening
+  behavior (requires usable audio, else falls back to sentence);
+  extensible for future behavior-related tags without card redesign.
 - Tooling: `sync_to_anki.py` pushes Front/Back/CSS with a pre-sync snapshot
   to `backups/<timestamp>/`; releases are runner-built (ADR 007): `finish.sh`
   runs verify → stamp → sync → commit → push main → tag, and CI builds the

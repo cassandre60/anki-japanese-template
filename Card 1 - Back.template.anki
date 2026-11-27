@@ -10,9 +10,11 @@
                 translation (click/T/X), extended definition,
                 additional context, kanji notes, notes, source.
 
-      Removed vs the old layout: sticky tags bar (tags are behavioral
-      metadata now, never decoration), frequency/pitch badges (visual
-      noise without retrieval value), the two-column side dashboard.
+      Removed vs the old layout: default sticky tags bar (tags are
+      behavioral metadata, shown only on explicit More/C reveal as an
+      in-flow footer at the end of the revealed section), frequency/pitch
+      badges (visual noise without retrieval value), the two-column side
+      dashboard.
 
       Preserved subsystems: Definition Compactor (§6b), truncator (§6c),
       native-delegating audio buttons (文/言葉 — playback indicator, not
@@ -253,7 +255,9 @@
         <div class="source-footer">{{edit:Source}}</div>
       {{/Source}}
 
-      <!-- Tags display inside More section -->
+      <!-- Tags stay hidden with the rest of More. On explicit reveal they
+           remain in normal flow as the section's quiet footer; no fixed
+           overlay, so nothing is covered or clipped. -->
       {{#Tags}}
         <div class="tags-block secondary-block">{{Tags}}</div>
       {{/Tags}}
@@ -288,7 +292,8 @@
   (function() {
     /* --- SECONDARY SECTION ("詳細 ▾" / "閉じる ▴" Two-way Toggle) --- */
     window.toggleMore = function(btn) {
-      var section = document.querySelector('.more-section');
+      var wrapper = (btn.closest && btn.closest('.card-wrapper.back-card')) || document;
+      var section = wrapper.querySelector('.more-section');
       if (!section) return;
       /* Lazy extended definition: stamp the inert template into its host
          once, on first open. Until then it costs no style/layout/paint. */
@@ -307,6 +312,27 @@
       var textSpan = btn.querySelector('.more-text');
       if (textSpan) {
         textSpan.textContent = !isExpanded ? '閉じる' : '詳細';
+      }
+      if (!isExpanded) window.ensureTagsVisible(wrapper);
+    };
+
+    window.ensureTagsVisible = function(wrapper) {
+      /* Tags live in normal flow at the end of the revealed More section.
+         An explicit reveal can push them (and the C bar) below the fold;
+         scroll just far enough that the tag footer and the C control are
+         on screen. No panel is created or moved, so card text is never
+         covered, the page is never clipped, and the next card starts
+         clean with nothing to reset. */
+      var scope = wrapper || document.querySelector('.card-wrapper.back-card');
+      if (!scope) return;
+      var tags = scope.querySelector('.more-section .tags-block');
+      if (!tags) return;
+      var end = scope.querySelector('.shortcut-hints') || scope.querySelector('.more-toggle');
+      if (!end || typeof end.scrollIntoView !== 'function') return;
+      try {
+        end.scrollIntoView({ block: 'end', inline: 'nearest', behavior: 'auto' });
+      } catch (e) {
+        try { end.scrollIntoView(false); } catch (_) {}
       }
     };
 

@@ -58,7 +58,7 @@ def load_functions():
         back = f.read()
     funcs = {}
     missing = []
-    for name in ("toggleMore", "expandDefinition", "applyShortcut",
+    for name in ("toggleMore", "ensureTagsVisible", "expandDefinition", "applyShortcut",
                  "initCardShortcuts"):
         m = re.search(r"window\.%s = function.*?^\s{4}\};" % name, back, re.S | re.M)
         if not m:
@@ -88,6 +88,7 @@ def build_html(funcs, hints, with_translation=True, with_more=True):
     more = (
         '<div class="more-section" hidden>'
         '<div class="html-content secondary-block">extra context</div>'
+        '<div class="tags-block secondary-block">tag-a tag-b</div>'
         '</div>'
         '<button type="button" class="more-toggle" aria-expanded="false">'
         '<span class="more-text">詳細</span> <span class="more-caret">▾</span></button>'
@@ -120,17 +121,23 @@ function state() {{
   var btn = wrapper.querySelector('.more-toggle');
   var def = wrapper.querySelector('.primary-definition');
   var sec = wrapper.querySelector('.more-section');
+  var tagsBlock = wrapper.querySelector('.tags-block');
   return {{
     furigana: wrapper.classList.contains('furigana-mode'),
     translation: box ? box.classList.contains('revealed') : null,
     translationAria: box ? box.getAttribute('aria-expanded') : null,
     moreOpen: btn ? btn.getAttribute('aria-expanded') : null,
     moreHidden: sec ? sec.hidden : null,
-    defExpanded: def ? def.classList.contains('is-expanded') : null
+    defExpanded: def ? def.classList.contains('is-expanded') : null,
+    tagsPanel: !!document.querySelector('.tags-panel'),
+    tagsVisible: !!(tagsBlock && sec && !sec.hidden && tagsBlock.getClientRects().length),
+    tagsInMore: !!(tagsBlock && tagsBlock.closest('.more-section')),
+    tagsCount: document.querySelectorAll('.tags-block').length
   }};
 }}
 try {{
 {funcs['toggleMore']}
+{funcs['ensureTagsVisible']}
 {funcs['expandDefinition']}
 {funcs['applyShortcut']}
 {funcs['initCardShortcuts']}
@@ -155,6 +162,7 @@ tap('.shortcut-item[data-shortcut="x"]');
 report.xOff = state();
 
 /* 3. C hint: opens More + expands the definition, then closes More. */
+report.tagsDefault = state().tagsVisible;
 tap('.shortcut-item[data-shortcut="c"]');
 report.cOn = state();
 tap('.shortcut-item[data-shortcut="c"]');
@@ -172,11 +180,13 @@ press('x');
 report.keyX = state().translation;
 press('c');
 report.keyC = state().moreOpen;
+report.keyCTags = state().tagsVisible;
 
 /* 7. Unbound keys are inert and must not throw. */
 press('q');
 press('Enter');
 report.afterUnknown = state();
+report.afterCloseTags = state().tagsCount;
 }} catch(e) {{ report.err = String(e && e.stack || e); }}
 document.title = 'X' + JSON.stringify(report) + 'X';
 </scr""" + "ipt></body></html>"
@@ -252,11 +262,25 @@ def main():
               r.get("cOff", {}).get("moreOpen") == "false"
               and r.get("cOff", {}).get("moreHidden") is True,
               json.dumps(r))
+        check("tags: hidden by default inside More",
+              r.get("tagsDefault") is False, json.dumps(r))
+        check("tags: C keeps them in flow inside More (no panel/overlay)",
+              r.get("cOn", {}).get("tagsVisible") is True
+              and r.get("cOn", {}).get("tagsInMore") is True
+              and r.get("cOn", {}).get("tagsPanel") is False,
+              json.dumps(r))
+        check("tags: C close hides them again",
+              r.get("cOff", {}).get("tagsVisible") is False,
+              json.dumps(r))
+        check("tags: never duplicated or moved across toggles",
+              r.get("afterCloseTags") == 1, json.dumps(r))
         check("C hint: never touches the translation (isolated)",
               r.get("cTranslationUntouched") is False, json.dumps(r))
         check("keyboard shortcuts still work alongside the click hints",
               r.get("keyZ") is True and r.get("keyX") is True
               and r.get("keyC") == "true", json.dumps(r))
+        check("tags: keyboard C reveals them too",
+              r.get("keyCTags") is True, json.dumps(r))
         check("unbound keys are inert (no throw, no state change)",
               r.get("afterUnknown", {}).get("furigana") is True
               and r.get("afterUnknown", {}).get("moreOpen") == "true",

@@ -166,9 +166,19 @@ def main():
           "#_flag" in css and ":not(:has(.back-card))" in css)
 
     # --- 6b. Redesign: hierarchy with frequency visualizer ---
-    check("Back: no sticky tags bar (tags are behavioral metadata)",
+    check("Back: no default sticky tags bar (tags hidden until explicit More/C reveal)",
           "tags-container" not in back and "tags-list" not in back
-          and "tag-pill" not in back)
+          and "tag-pill" not in back and 'class="tags-panel"' not in back
+          and 'class="more-section" hidden' in back)
+    check("CSS: revealed tags stay in normal flow (no fixed/sticky overlay)",
+          re.search(r"\.more-section \.tags-block\s*\{[^}]*text-align:\s*center", css) is not None
+          and re.search(r"\.tags-panel\s*\{", css) is None
+          and re.search(r"\.more-section \.tags-block\s*\{[^}]*position:\s*(?:fixed|sticky)", css) is None)
+    check("revealed tags scroll into view without a moved panel",
+          "window.ensureTagsVisible" in back
+          and "scrollIntoView" in back
+          and "window.syncTagsPanel" not in back
+          and "window.resetTagsPanel" not in back)
     check("Back: frequency visualizer present",
           "frequency-badge" in back and "renderFrequencyIndicator" in back)
     check("CSS: frequency badge styling present",

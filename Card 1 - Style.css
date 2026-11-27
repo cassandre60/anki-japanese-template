@@ -307,6 +307,29 @@
   width: 100%;
 }
 
+/* Tags are hidden with the rest of More by default. On explicit reveal
+   they stay in normal flow as a quiet footer at the end of the section:
+   no fixed panel, so they never cover card text or the C control and the
+   page is never clipped. `ensureTagsVisible` only scrolls the page so the
+   reveal brings the tags (and the C bar below them) into view. */
+.more-section .tags-block {
+  margin: 12px 0 0;
+  padding: 9px var(--block-pad-x) 2px;
+  background: transparent;
+  border: 0;
+  border-top: 1px solid var(--separator-color);
+  border-radius: 0;
+  font-family: var(--font-interface);
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.45;
+  letter-spacing: 0.02em;
+  color: var(--text-muted);
+  text-align: center;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
 
 /* ==============================================================================
    4. CONTEXT GRID (sentence; legacy picture rules retained per ADR 006)
@@ -1506,6 +1529,9 @@ ruby:focus-within rt {
   margin: clamp(6px, 1vh, 12px) auto 4px auto;
   padding: 6px 12px;
   user-select: none;
+  /* Explicit More/C reveal scrolls this bar to the bottom of the viewport;
+     keep a small breathing gap below it instead of hard-flushing the edge. */
+  scroll-margin-block-end: 10px;
 }
 
 .shortcut-item {

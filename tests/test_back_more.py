@@ -30,6 +30,7 @@ import tempfile
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 BACK = os.path.join(ROOT, "Card 1 - Back.template.anki")
+CSS = os.path.join(ROOT, "Card 1 - Style.css")
 FIXTURE = os.path.join(HERE, "fixtures", "yomitan_daijirin_daijisen.html")
 CHROME = shutil.which("google-chrome-stable") or shutil.which("chromium")
 
@@ -52,7 +53,7 @@ def load_functions():
     with open(BACK, encoding="utf-8") as f:
         back = f.read()
     funcs = {}
-    for name in ("toggleMore", "initSecondarySection", "pruneCompactedGlossary",
+    for name in ("toggleMore", "ensureTagsVisible", "initSecondarySection", "pruneCompactedGlossary",
                  "hasVisualContent", "prepareDefinitionBoxes",
                  "initDefinitionTruncation"):
         m = re.search(r"window\.%s = function.*?^\s{4}\};" % name, back, re.S | re.M)
@@ -73,6 +74,7 @@ def build_html(funcs, more_inner, def_inner=""):
 var report = {{}};
 try {{
 {funcs['toggleMore']}
+{funcs['ensureTagsVisible']}
 {funcs['initSecondarySection']}
 {funcs['pruneCompactedGlossary']}
 {funcs['hasVisualContent']}
@@ -108,7 +110,7 @@ document.title = 'X' + JSON.stringify(report) + 'X';
 </scr""" + "ipt></body></html>"
 
 
-def render(html):
+def render(html, size="412,892"):
     import json as _json
     with tempfile.TemporaryDirectory() as td:
         path = os.path.join(td, "back.html")
@@ -118,7 +120,7 @@ def render(html):
             out = subprocess.run(
                 [CHROME, "--headless=new", "--disable-gpu",
                  "--no-sandbox", "--hide-scrollbars",
-                 "--window-size=412,892",
+                 f"--window-size={size}",
                  "--virtual-time-budget=1500",
                  "--dump-dom", f"file://{path}"],
                 capture_output=True, text=True, timeout=60,
@@ -132,6 +134,79 @@ def render(html):
         return _json.loads(m.group(1))
     except ValueError:
         return None
+
+
+def build_geometry_html(funcs, css):
+    """Real stylesheet + a tall More section, so the reveal pushes the tag
+    footer below the fold. Regression for issue #4: the old fixed panel
+    overlapped the More toggle and clipped the page bottom."""
+    filler = "<p>" + ("Long secondary context that pushes the tag footer below the fold. " * 80) + "</p>"
+    return f"""<!doctype html><html><head><meta charset="utf-8">
+<style>html, body {{ margin: 0; padding: 20px; }}</style>
+<style>{css}</style></head><body class="card card1 nightMode">
+<div class="card-wrapper back-card"><div class="card-container">
+<div class="hero-header"><div class="hero-word-wrap"><div class="word-display">言葉</div></div></div>
+<div class="definition-box primary-definition">definition text</div>
+<div class="more-section" hidden>
+<div class="html-content secondary-block">{filler}</div>
+<div class="tags-block secondary-block">tag-alpha tag-beta tag-gamma</div>
+</div>
+<button type="button" class="more-toggle" aria-expanded="false">
+<span class="more-text">詳細</span> <span class="more-caret">▾</span></button>
+<div class="shortcut-hints"><button type="button" class="shortcut-item"
+data-shortcut="c"><kbd>C</kbd> 展開</button></div>
+</div></div>
+<script>
+var report = {{}};
+try {{
+{funcs['toggleMore']}
+{funcs['ensureTagsVisible']}
+{funcs['initSecondarySection']}
+var tags = document.querySelector('.tags-block');
+var sec = document.querySelector('.more-section');
+var btn = document.querySelector('.more-toggle');
+var hints = document.querySelector('.shortcut-hints');
+function box(el) {{
+  var b = el.getBoundingClientRect();
+  return {{ top: b.top, bottom: b.bottom, left: b.left, right: b.right }};
+}}
+function hit(el) {{
+  var b = el.getBoundingClientRect();
+  var n = document.elementFromPoint((b.left + b.right) / 2, (b.top + b.bottom) / 2);
+  return !!(n && (n === el || el.contains(n)));
+}}
+function state() {{
+  return {{
+    hidden: sec.hidden,
+    tagsInMore: !!tags.closest('.more-section'),
+    tagsCount: document.querySelectorAll('.tags-block').length,
+    panel: !!document.querySelector('.tags-panel'),
+    tagsVisible: tags.getClientRects().length > 0
+  }};
+}}
+report.before = state();
+window.toggleMore(btn);
+report.afterOpen = Object.assign(state(), {{
+  tagRect: box(tags), toggleRect: box(btn), hintsRect: box(hints),
+  tagPosition: getComputedStyle(tags).position,
+  viewportH: window.innerHeight, scrollY: window.scrollY,
+  docH: document.documentElement.scrollHeight,
+  noHOverflow: document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1,
+  tagsHit: hit(tags), toggleHit: hit(btn), hintsHit: hit(hints)
+}});
+window.toggleMore(btn);
+report.afterClose = state();
+window.initSecondarySection();
+window.initSecondarySection();
+report.afterReinit = state();
+window.toggleMore(btn);
+report.afterReopen = Object.assign(state(), {{
+  tagRect: box(tags), toggleRect: box(btn), hintsRect: box(hints),
+  tagsHit: hit(tags), toggleHit: hit(btn), hintsHit: hit(hints)
+}});
+}} catch(e) {{ report.err = String(e && e.stack || e); }}
+document.title = 'X' + JSON.stringify(report) + 'X';
+</scr""" + "ipt></body></html>"
 
 
 def main():
@@ -216,6 +291,75 @@ def main():
     if r:
         check("image-only More block: section + toggle survive",
               r.get("moreAlive") is True and r.get("btnAlive") is True, str(r))
+
+    # Case 8: revealed tag footer geometry (issue #4 regression).
+    # A tall More section pushes tags/C below the fold; the reveal must
+    # scroll them into view while leaving both in normal flow. The old
+    # fixed panel overlapped the More toggle and the fixed hint bar clipped
+    # the card bottom, so these checks fail on that implementation.
+    with open(CSS, encoding="utf-8") as f:
+        css = f.read()
+    for size in ("1280,900", "412,892"):
+        r = render(build_geometry_html(funcs, css), size)
+        check(f"tag footer [{size}]: probe returned", r is not None)
+        if not r:
+            continue
+        check(f"tag footer [{size}]: ran without errors", "err" not in r, r.get("err", ""))
+        before = r.get("before", {})
+        opened = r.get("afterOpen", {})
+        closed = r.get("afterClose", {})
+        reinit = r.get("afterReinit", {})
+        reopened = r.get("afterReopen", {})
+        vh = opened.get("viewportH") or 1
+        check(f"tag footer [{size}]: hidden by default inside More",
+              before.get("tagsVisible") is False
+              and before.get("tagsInMore") is True
+              and before.get("panel") is False,
+              str(r))
+        check(f"tag footer [{size}]: reveal keeps tags in flow (no panel)",
+              opened.get("tagsVisible") is True
+              and opened.get("tagsInMore") is True
+              and opened.get("panel") is False
+              and opened.get("tagPosition") in ("static", "relative", "flow-root"),
+              str(r))
+        check(f"tag footer [{size}]: reveal scrolls tags + C into the viewport",
+              (opened.get("scrollY") or 0) > 0
+              and opened.get("tagRect", {}).get("top", -1) >= -1
+              and opened.get("tagRect", {}).get("bottom", vh + 1) <= vh + 1
+              and opened.get("toggleRect", {}).get("top", -1) >= -1
+              and opened.get("toggleRect", {}).get("bottom", vh + 1) <= vh + 1
+              and opened.get("hintsRect", {}).get("bottom", vh + 1) <= vh + 1,
+              str(r))
+        check(f"tag footer [{size}]: nothing overlays tags or the C control",
+              opened.get("tagsHit") is True
+              and opened.get("toggleHit") is True
+              and opened.get("hintsHit") is True,
+              str(r))
+        check(f"tag footer [{size}]: no horizontal overflow / page clipping",
+              opened.get("noHOverflow") is True
+              and (opened.get("docH") or 0) >= vh,
+              str(r))
+        check(f"tag footer [{size}]: closing hides tags, no stale panel",
+              closed.get("hidden") is True
+              and closed.get("tagsVisible") is False
+              and closed.get("panel") is False
+              and closed.get("tagsInMore") is True
+              and closed.get("tagsCount") == 1,
+              str(r))
+        check(f"tag footer [{size}]: re-init leaves one hidden in-flow block",
+              reinit.get("hidden") is True
+              and reinit.get("panel") is False
+              and reinit.get("tagsInMore") is True
+              and reinit.get("tagsCount") == 1,
+              str(r))
+        check(f"tag footer [{size}]: reopening is clean and reachable",
+              reopened.get("tagsVisible") is True
+              and reopened.get("panel") is False
+              and reopened.get("tagsInMore") is True
+              and reopened.get("tagsCount") == 1
+              and reopened.get("tagsHit") is True
+              and reopened.get("toggleHit") is True,
+              str(r))
 
     print()
     print(f"{PASS} passed, {FAIL} failed")
