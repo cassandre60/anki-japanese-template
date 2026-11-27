@@ -58,7 +58,7 @@ def load_functions():
         back = f.read()
     funcs = {}
     missing = []
-    for name in ("toggleMore", "ensureTagsVisible", "expandDefinition", "applyShortcut",
+    for name in ("toggleMore", "showTagsBar", "hideTagsBar", "expandDefinition", "applyShortcut",
                  "initCardShortcuts"):
         m = re.search(r"window\.%s = function.*?^\s{4}\};" % name, back, re.S | re.M)
         if not m:
@@ -88,10 +88,12 @@ def build_html(funcs, hints, with_translation=True, with_more=True):
     more = (
         '<div class="more-section" hidden>'
         '<div class="html-content secondary-block">extra context</div>'
-        '<div class="tags-block secondary-block">tag-a tag-b</div>'
         '</div>'
         '<button type="button" class="more-toggle" aria-expanded="false">'
         '<span class="more-text">詳細</span> <span class="more-caret">▾</span></button>'
+    ) if with_more else ""
+    tags_source = (
+        '<div class="tags-source" hidden>tag-a tag-b</div>'
     ) if with_more else ""
     return f"""<!doctype html><html><head><meta charset="utf-8"></head><body>
 <div class="card-wrapper back-card"><div class="card-container">
@@ -100,6 +102,7 @@ def build_html(funcs, hints, with_translation=True, with_more=True):
 {translation}
 {more}
 {hints}
+{tags_source}
 </div></div>
 <script>
 var report = {{}};
@@ -121,7 +124,8 @@ function state() {{
   var btn = wrapper.querySelector('.more-toggle');
   var def = wrapper.querySelector('.primary-definition');
   var sec = wrapper.querySelector('.more-section');
-  var tagsBlock = wrapper.querySelector('.tags-block');
+  var tagsBlock = wrapper.querySelector('.tags-source');
+  var tagsBar = document.querySelector('.tags-bar');
   return {{
     furigana: wrapper.classList.contains('furigana-mode'),
     translation: box ? box.classList.contains('revealed') : null,
@@ -130,14 +134,15 @@ function state() {{
     moreHidden: sec ? sec.hidden : null,
     defExpanded: def ? def.classList.contains('is-expanded') : null,
     tagsPanel: !!document.querySelector('.tags-panel'),
-    tagsVisible: !!(tagsBlock && sec && !sec.hidden && tagsBlock.getClientRects().length),
-    tagsInMore: !!(tagsBlock && tagsBlock.closest('.more-section')),
-    tagsCount: document.querySelectorAll('.tags-block').length
+    tagsVisible: !!tagsBar,
+    tagsBarOnBody: !!(tagsBar && tagsBar.parentNode === document.body),
+    tagsBarCount: document.querySelectorAll('.tags-bar').length
   }};
 }}
 try {{
 {funcs['toggleMore']}
-{funcs['ensureTagsVisible']}
+{funcs['showTagsBar']}
+{funcs['hideTagsBar']}
 {funcs['expandDefinition']}
 {funcs['applyShortcut']}
 {funcs['initCardShortcuts']}
@@ -186,7 +191,7 @@ report.keyCTags = state().tagsVisible;
 press('q');
 press('Enter');
 report.afterUnknown = state();
-report.afterCloseTags = state().tagsCount;
+report.afterCloseTags = state().tagsBarCount;
 }} catch(e) {{ report.err = String(e && e.stack || e); }}
 document.title = 'X' + JSON.stringify(report) + 'X';
 </scr""" + "ipt></body></html>"
@@ -262,18 +267,18 @@ def main():
               r.get("cOff", {}).get("moreOpen") == "false"
               and r.get("cOff", {}).get("moreHidden") is True,
               json.dumps(r))
-        check("tags: hidden by default inside More",
+        check("tags: hidden by default",
               r.get("tagsDefault") is False, json.dumps(r))
-        check("tags: C keeps them in flow inside More (no panel/overlay)",
+        check("tags: C shows fixed bar on body (no old panel)",
               r.get("cOn", {}).get("tagsVisible") is True
-              and r.get("cOn", {}).get("tagsInMore") is True
+              and r.get("cOn", {}).get("tagsBarOnBody") is True
               and r.get("cOn", {}).get("tagsPanel") is False,
               json.dumps(r))
         check("tags: C close hides them again",
               r.get("cOff", {}).get("tagsVisible") is False,
               json.dumps(r))
-        check("tags: never duplicated or moved across toggles",
-              r.get("afterCloseTags") == 1, json.dumps(r))
+        check("tags: never duplicated across toggles",
+              r.get("afterCloseTags") <= 1, json.dumps(r))
         check("C hint: never touches the translation (isolated)",
               r.get("cTranslationUntouched") is False, json.dumps(r))
         check("keyboard shortcuts still work alongside the click hints",

@@ -106,11 +106,13 @@ mechanically verified*. Code implements; tests enforce.
   `More ▾` / `Less ▴`; the toggle and section self-remove when no secondary
   content exists.
 - `{{Tags}}` is not shown by default. Only explicit `More ▾` / `C` reveal
-  shows the existing `.tags-block` as an in-flow footer at the end of
-  `.more-section` (never a fixed panel/overlay); the reveal scrolls the tag
-  footer and the C bar into view so no manual scroll is needed. Closing
-  hides the section again; nothing is moved or left pinned, so the next card
-  starts clean. No default tags bar; `R` remains Anki-owned.
+  shows the tags as a fixed bar pinned to the viewport bottom. The bar is
+  created by JS on `document.body` (outside `.card-wrapper`) so
+  `position:fixed` works despite `.card-wrapper`'s
+  `container-type:inline-size`. No scrolling needed — tags are always
+  visible at the screen bottom. Closing hides the bar; `pagehide` and
+  `initSecondarySection` remove stale bars, so the next card starts clean.
+  No default tags bar; `R` remains Anki-owned.
 - Content hierarchy communicates card mode directly: no retrieval-state
   badges, captions, or dashboard metadata.
 - Keyboard shortcuts on the back: `F` toggles full-card furigana

@@ -111,10 +111,13 @@ off-screen context to be solvable is a bad mine and should be re-mined.
   interval request, because those calls can surface natively as false
   "Card Content Error: Failed to load" media warnings in the reviewer.
 - Tags are behavioral metadata, never decoration: front uses hidden
-  probes only; on the back, `{{Tags}}` is hidden by default inside More
-  and, when explicitly revealed by `More ▾` / `C`, appears as an in-flow
-  footer at the end of the section (no fixed overlay); the reveal scrolls
-  the footer and the C bar into view; `#listening` forces listening
+  probes only; on the back, `{{Tags}}` is hidden by default in a
+  `.tags-source` element and, when explicitly revealed by `More ▾` / `C`,
+  appears as a fixed bar pinned to the viewport bottom (JS creates it on
+  `document.body` so `position:fixed` works despite
+  `container-type:inline-size` on `.card-wrapper`); no scrolling needed;
+  closing More removes the bar; next card starts clean via `pagehide` +
+  `initSecondarySection` cleanup; `#listening` forces listening
   behavior (requires usable audio, else falls back to sentence);
   extensible for future behavior-related tags without card redesign.
 - Tooling: `sync_to_anki.py` pushes Front/Back/CSS with a pre-sync snapshot

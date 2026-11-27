@@ -307,27 +307,34 @@
   width: 100%;
 }
 
-/* Tags are hidden with the rest of More by default. On explicit reveal
-   they stay in normal flow as a quiet footer at the end of the section:
-   no fixed panel, so they never cover card text or the C control and the
-   page is never clipped. `ensureTagsVisible` only scrolls the page so the
-   reveal brings the tags (and the C bar below them) into view. */
-.more-section .tags-block {
-  margin: 12px 0 0;
-  padding: 9px var(--block-pad-x) 2px;
-  background: transparent;
-  border: 0;
-  border-top: 1px solid var(--separator-color);
-  border-radius: 0;
+/* Tags bar: a fixed strip at the viewport bottom, shown only when More
+   is open. Created by JS on document.body (outside .card-wrapper) so
+   position:fixed works despite container-type:inline-size. The bar never
+   covers the C control (it sits below the card), never clips the page,
+   and is removed when More closes or the card flips. */
+.tags-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 999;
+  padding: 6px 16px;
+  background: var(--card-bg);
+  border-top: 1px solid var(--card-border);
   font-family: var(--font-interface);
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 500;
-  line-height: 1.45;
+  line-height: 1.35;
   letter-spacing: 0.02em;
   color: var(--text-muted);
   text-align: center;
   overflow-wrap: anywhere;
   word-break: break-word;
+}
+
+/* Hidden data source for tags text — never rendered. */
+.tags-source {
+  display: none !important;
 }
 
 

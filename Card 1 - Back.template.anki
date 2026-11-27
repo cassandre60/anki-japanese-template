@@ -11,8 +11,9 @@
                 additional context, kanji notes, notes, source.
 
       Removed vs the old layout: default sticky tags bar (tags are
-      behavioral metadata, shown only on explicit More/C reveal as an
-      in-flow footer at the end of the revealed section), frequency/pitch
+      behavioral metadata, shown only on explicit More/C reveal as a
+      fixed bar at the viewport bottom — JS creates it on document.body
+      so it works despite container-type:inline-size), frequency/pitch
       badges (visual noise without retrieval value), the two-column side
       dashboard.
 
@@ -255,12 +256,6 @@
         <div class="source-footer">{{edit:Source}}</div>
       {{/Source}}
 
-      <!-- Tags stay hidden with the rest of More. On explicit reveal they
-           remain in normal flow as the section's quiet footer; no fixed
-           overlay, so nothing is covered or clipped. -->
-      {{#Tags}}
-        <div class="tags-block secondary-block">{{Tags}}</div>
-      {{/Tags}}
     </div>
 
     <!-- Two-way "詳細 ▾" / "閉じる ▴" toggle -->
@@ -281,6 +276,15 @@
       <button type="button" class="shortcut-item" data-shortcut="x" title="訳 (X)"><kbd>X</kbd> 訳</button>
       <button type="button" class="shortcut-item" data-shortcut="c" title="展開 (C)"><kbd>C</kbd> 展開</button>
     </div>
+
+    <!-- Tags footer: placed AFTER the shortcut bar so it renders at the
+         very bottom of the visible card when revealed. Hidden by default;
+         toggleMore JS clones its text into a fixed bar on document.body
+         (outside card-wrapper, so position:fixed works despite
+         container-type:inline-size). No scroll needed. -->
+    {{#Tags}}
+      <div class="tags-source" hidden>{{Tags}}</div>
+    {{/Tags}}
 
     </div> <!-- End card-content -->
 
@@ -313,26 +317,31 @@
       if (textSpan) {
         textSpan.textContent = !isExpanded ? '閉じる' : '詳細';
       }
-      if (!isExpanded) window.ensureTagsVisible(wrapper);
+      /* Tags bar: show/hide a fixed bar at the viewport bottom. The bar
+         lives on document.body (outside .card-wrapper) so position:fixed
+         works even though .card-wrapper has container-type:inline-size.
+         No scroll needed — tags are always visible at the screen bottom. */
+      if (!isExpanded) {
+        window.showTagsBar(wrapper);
+      } else {
+        window.hideTagsBar();
+      }
     };
 
-    window.ensureTagsVisible = function(wrapper) {
-      /* Tags live in normal flow at the end of the revealed More section.
-         An explicit reveal can push them (and the C bar) below the fold;
-         scroll just far enough that the tag footer and the C control are
-         on screen. No panel is created or moved, so card text is never
-         covered, the page is never clipped, and the next card starts
-         clean with nothing to reset. */
-      var scope = wrapper || document.querySelector('.card-wrapper.back-card');
-      if (!scope) return;
-      var tags = scope.querySelector('.more-section .tags-block');
-      if (!tags) return;
-      var end = scope.querySelector('.shortcut-hints') || scope.querySelector('.more-toggle');
-      if (!end || typeof end.scrollIntoView !== 'function') return;
-      try {
-        end.scrollIntoView({ block: 'end', inline: 'nearest', behavior: 'auto' });
-      } catch (e) {
-        try { end.scrollIntoView(false); } catch (_) {}
+    window.showTagsBar = function(wrapper) {
+      window.hideTagsBar();
+      var src = (wrapper || document).querySelector('.tags-source');
+      if (!src) return;
+      var bar = document.createElement('div');
+      bar.className = 'tags-bar';
+      bar.textContent = src.textContent;
+      document.body.appendChild(bar);
+    };
+
+    window.hideTagsBar = function() {
+      var bars = document.querySelectorAll('.tags-bar');
+      for (var i = 0; i < bars.length; i++) {
+        if (bars[i].parentNode) bars[i].parentNode.removeChild(bars[i]);
       }
     };
 
@@ -424,6 +433,7 @@
       window.addEventListener('pagehide', () => {
         const ov = document.querySelector('.lightbox-overlay');
         if (ov && ov.parentNode) ov.parentNode.removeChild(ov);
+        try { window.hideTagsBar(); } catch (_) {}
       });
     }
 
@@ -580,6 +590,7 @@
     /* --- SECONDARY SECTION CLEANUP + KEYBOARD SHORTCUTS --- */
     window.initSecondarySection = function() {
       try {
+        window.hideTagsBar();
         var section = document.querySelector('.more-section');
         var btn = document.querySelector('.more-toggle');
         if (section && btn) {
