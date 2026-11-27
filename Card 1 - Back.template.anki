@@ -332,9 +332,16 @@
       window.hideTagsBar();
       var src = (wrapper || document).querySelector('.tags-source');
       if (!src) return;
+      var raw = (src.textContent || '').trim();
+      if (!raw) return;
       var bar = document.createElement('div');
       bar.className = 'tags-bar';
-      bar.textContent = src.textContent;
+      raw.split(/\s+/).forEach(function(tag) {
+        var pill = document.createElement('span');
+        pill.className = 'tags-bar-pill';
+        pill.textContent = tag;
+        bar.appendChild(pill);
+      });
       document.body.appendChild(bar);
     };
 

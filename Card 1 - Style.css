@@ -318,18 +318,29 @@
   right: 0;
   bottom: 0;
   z-index: 999;
-  padding: 6px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 6px 12px;
   background: var(--card-bg);
   border-top: 1px solid var(--card-border);
   font-family: var(--font-interface);
-  font-size: 0.72rem;
+  font-size: 0.68rem;
+  line-height: 1;
+}
+
+.tags-bar-pill {
+  display: inline-block;
+  padding: 3px 8px;
+  background: var(--accent-light);
+  color: var(--text-secondary);
+  border: 1px solid var(--card-border);
+  border-radius: 9999px;
   font-weight: 500;
-  line-height: 1.35;
   letter-spacing: 0.02em;
-  color: var(--text-muted);
-  text-align: center;
-  overflow-wrap: anywhere;
-  word-break: break-word;
+  white-space: nowrap;
 }
 
 /* Hidden data source for tags text — never rendered. */
