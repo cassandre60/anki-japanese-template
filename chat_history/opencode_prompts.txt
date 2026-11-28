@@ -2672,3 +2672,14 @@ Follow-up after the fix: "i need to test to see if itgood in anki, commit and sy
 ---
 
 push to remote
+
+---
+
+reportissue  and fix it:
+pressing C did not work that well , clicking C worked
+sometimes, not all the time
+
+---
+
+seems  to  work , publish to gh as a issue and PR
+then will close sess
