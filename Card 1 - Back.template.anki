@@ -678,26 +678,46 @@
 
     window.initCardShortcuts = function() {
       var wrapper = document.querySelector('.card-wrapper.back-card');
-      if (!wrapper || wrapper.dataset.shortcutsBound) return;
-      wrapper.dataset.shortcutsBound = '1';
-      document.addEventListener('keydown', function(e) {
+      if (!wrapper) return;
+
+      /* KEYBOARD: exactly ONE document-level keydown listener, ever.
+         `initCardShortcuts` runs again on every card (and on WebView DOM
+         re-use with a FRESH wrapper element); without removing the previous
+         listener they stack, so one keypress would call applyShortcut N
+         times and a toggle like C would land back where it started
+         (intermittent: depends on how many cards have rendered). The guard
+         on the wrapper can't catch this — the listener lives on `document`,
+         not on the wrapper. Re-add a stable handler reference instead. */
+      var keydownHandler = function(e) {
         if (e.altKey || e.ctrlKey || e.metaKey) return;
+        if (e.repeat) return;
         var tag = (e.target && e.target.tagName) || '';
         if (tag === 'INPUT' || tag === 'TEXTAREA' || (e.target && e.target.isContentEditable)) return;
         if (!window.applyShortcut(e.key)) return;
         e.preventDefault();
         e.stopPropagation();
-      });
-      /* Delegated on the wrapper (survives WebView DOM re-use and hints that
-         render late); `.closest` keeps clicks on the inner <kbd> working. */
-      wrapper.addEventListener('click', function(e) {
-        var item = e.target && e.target.closest && e.target.closest('.shortcut-item');
-        if (!item) return;
-        var key = item.getAttribute('data-shortcut');
-        if (!key || !window.applyShortcut(key)) return;
-        e.preventDefault();
-        e.stopPropagation();
-      });
+        if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+      };
+      if (window.__cardShortcutKeydown) {
+        document.removeEventListener('keydown', window.__cardShortcutKeydown);
+      }
+      window.__cardShortcutKeydown = keydownHandler;
+      document.addEventListener('keydown', keydownHandler);
+
+      /* CLICK: one delegated listener per wrapper (survives WebView DOM
+         re-use and hints that render late); `.closest` keeps clicks on the
+         inner <kbd> working. Guard separate from keyboard binding. */
+      if (!wrapper.dataset.shortcutClickBound) {
+        wrapper.dataset.shortcutClickBound = '1';
+        wrapper.addEventListener('click', function(e) {
+          var item = e.target && e.target.closest && e.target.closest('.shortcut-item');
+          if (!item) return;
+          var key = item.getAttribute('data-shortcut');
+          if (!key || !window.applyShortcut(key)) return;
+          e.preventDefault();
+          e.stopPropagation();
+        });
+      }
     };
 
     /* --- LONG-HERO STACKING (2+ line Expression) ---

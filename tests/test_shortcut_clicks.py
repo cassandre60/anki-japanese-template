@@ -200,6 +200,26 @@ report.afterCloseTags = state().tagsBarCount;
 /* 8. Next card transition: Anki replaces #qa. Tags must be completely gone. */
 document.getElementById('qa').innerHTML = '<div class="card-wrapper"><div class="card-container"><div class="sentence-display">Next Front</div></div></div>';
 report.nextCardHasTags = !!document.querySelector('.tags-bar');
+
+/* 9. Re-init across cards on a reused document (Anki WebView DOM re-use):
+   a fresh `.card-wrapper.back-card` + initCardShortcuts() must not stack
+   document-level keydown listeners; ONE C press toggles exactly once. */
+document.getElementById('qa').innerHTML =
+  '<div class="card-wrapper back-card"><div class="card-container">' +
+  '<div class="definition-box primary-definition">Short definition.</div>' +
+  '<div class="more-section" hidden><div class="html-content secondary-block">extra context</div></div>' +
+  '<button type="button" class="more-toggle" aria-expanded="false"><span class="more-text">詳細</span></button>' +
+  '<div class="shortcut-hints"><button type="button" class="shortcut-item" data-shortcut="c" title="展開 (C)"><kbd>C</kbd> 展開</button></div>' +
+  '</div></div>';
+window.initCardShortcuts();
+var reinitBefore = state().moreOpen;
+press('c');
+report.reinitSingleC = {{
+  before: reinitBefore,
+  after: state().moreOpen,
+  hidden: state().moreHidden,
+  defExpanded: state().defExpanded
+}};
 }} catch(e) {{ report.err = String(e && e.stack || e); }}
 document.title = 'X' + JSON.stringify(report) + 'X';
 </scr""" + "ipt></body></html>"
@@ -290,6 +310,11 @@ def main():
               r.get("afterCloseTags") <= 1, json.dumps(r))
         check("tags: never visible on next card",
               r.get("nextCardHasTags") is False, json.dumps(r))
+        check("re-init does not stack keydown listeners: one C press toggles once",
+              r.get("reinitSingleC", {}).get("after") == "true"
+              and r.get("reinitSingleC", {}).get("hidden") is False
+              and r.get("reinitSingleC", {}).get("defExpanded") is True,
+              json.dumps(r))
         check("C hint: never touches the translation (isolated)",
               r.get("cTranslationUntouched") is False, json.dumps(r))
         check("keyboard shortcuts still work alongside the click hints",
